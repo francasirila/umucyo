@@ -4,6 +4,7 @@ from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, text
+
 from database import Base
 from models.enums import AccountStatus
 
@@ -44,6 +45,7 @@ class Farmer(Base):
         server_default="active",
     )
     phone_number = Column(String(20), nullable=False, unique=True)
+
     cooperative = relationship(
         "Cooperative",
         back_populates="farmers",

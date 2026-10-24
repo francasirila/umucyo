@@ -1,15 +1,12 @@
 import uuid
-from sqlalchemy import (
-    Column,
-    String,
-    Enum,
-    DateTime,
-)
+
+from sqlalchemy import Column, DateTime, Enum, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, text
-from models.enums import CooperativeStatus
+
 from database import Base
+from models.enums import CooperativeStatus
 
 
 class Cooperative(Base):
@@ -34,11 +31,11 @@ class Cooperative(Base):
         default=CooperativeStatus.active,
         server_default="active",
     )
+
     users = relationship("User", back_populates="cooperative")
     farmers = relationship("Farmer", back_populates="cooperative")
     collection_points = relationship("CollectionPoint", back_populates="cooperative")
     agent_assignments = relationship("AgentAssignment", back_populates="cooperative")
-    weighing_devices = relationship("WeighingDevice", back_populates="cooperative")
     produce_records = relationship("ProduceRecord", back_populates="cooperative")
     produce_prices = relationship("ProducePrice", back_populates="cooperative")
     payment_transactions = relationship(

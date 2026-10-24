@@ -1,21 +1,19 @@
 import uuid
+
 from sqlalchemy import (
-    Column,
-    Text,
-    Enum,
-    DateTime,
-    ForeignKey,
     CheckConstraint,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, text
-from models.enums import *  # noqa: F403
-
 
 from database import Base
-
-from .enums import TaskPriority, TaskStatus
+from models.enums import TaskPriority, TaskStatus
 
 
 class Task(Base):
@@ -39,6 +37,14 @@ class Task(Base):
         nullable=False,
         index=True,
     )
+
+    farmer_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("farmer.farmer_id"),
+        nullable=True,
+        index=True,
+    )
+
     created_by_user_id = Column(
         UUID(as_uuid=True), ForeignKey("user.user_id"), nullable=False
     )
