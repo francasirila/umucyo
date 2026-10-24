@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 
-app = FastAPI(title="Umucyo",
-description="Backend API for creating transparency between the farmers and cooperatives",
-version="0.1.0"
+app = FastAPI(
+    title="Umucyo",
+    description="Backend API for creating transparency between the farmers and cooperatives",
+    version="0.1.0",
 )
 
 
