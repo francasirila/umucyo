@@ -18,7 +18,7 @@ class MessageLog(Base):
     category = Column(Enum(MessageCategory, name="message_category"), nullable=True)
     status = Column(Enum(MessageStatus, name="message_status"), nullable=False)
     sent_at = Column(DateTime(timezone=True), nullable=True)
-    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("cooperative_User.user_id"), nullable=True)
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("cooperative_user.user_id"), nullable=True)
     received_at = Column(DateTime(timezone=True), nullable=True)
     provider_message_id = Column(String(150), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

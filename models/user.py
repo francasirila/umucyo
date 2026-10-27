@@ -17,6 +17,6 @@ class User(Base):
     user_type = Column(Enum(UserType, name="user_type"), nullable=False)
 
     cooperative = relationship("Cooperative", back_populates="users")
-    cooperative_agent = relationship("CooperativeAgent", back_populates="user", uselist=False)
+    cooperative_agent = relationship("CooperativeUser", back_populates="user", uselist=False)
     farmer = relationship("Farmer", back_populates="user", uselist=False)
     __mapper_args__ = {"polymorphic_on": user_type}

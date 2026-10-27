@@ -9,12 +9,12 @@ class AgentAssignment(Base):
     __tablename__ = "agent_assignment"
 
     assignment_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("cooperative_agent.user_id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("cooperative_user.user_id"), nullable=False)
     collection_point_id = Column(UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=False)
-    assigned_by_user_id = Column(UUID(as_uuid=True), ForeignKey("cooperative_agent.user_id"), nullable=False)
+    assigned_by_user_id = Column(UUID(as_uuid=True), ForeignKey("cooperative_user.user_id"), nullable=False)
     assigned_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     ended_at = Column(DateTime(timezone=True), nullable=True)
 
-    agent = relationship("CooperativeAgent", foreign_keys=[user_id], back_populates="assignments")
-    assigned_by = relationship("CooperativeAgent", foreign_keys=[assigned_by_user_id], back_populates="created_assignments")
+    agent = relationship("CooperativeUser", foreign_keys=[user_id], back_populates="assignments")
+    assigned_by = relationship("CooperativeUser", foreign_keys=[assigned_by_user_id], back_populates="created_assignments")
     collection_point = relationship("CollectionPoint", back_populates="assignments")
