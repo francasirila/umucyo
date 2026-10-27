@@ -1,74 +1,75 @@
-import enum
+from enum import Enum
 
 
-class UserRole(str, enum.Enum):
-    ADMIN = "admin"
-    AGENT = "agent"
-    FARMER = "farmer"
+class AccountStatus(str, Enum):
+    active = "active"
+    inactive = "inactive"
 
 
-class AccountStatus(str, enum.Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"
+class CooperativeStatus(str, Enum):
+    active = "active"
+    inactive = "inactive"
 
 
-class DeliveryStatus(str, enum.Enum):
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
+class UserType(str, Enum):
+    farmer = "farmer"
+    cooperative_admin = "admin"
+    cooperative_agent = "agent"
 
 
-class DeviceStatus(str, enum.Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"
+class DeliveryStatus(str, Enum):
+    accepted = "accepted"
+    rejected = "rejected"
+    partially_accepted = "partially_accepted"
 
 
-class PaymentStatus(str, enum.Enum):
-    PENDING = "pending"
-    PAID = "paid"
-    FAILED = "failed"
+class PaymentStatus(str, Enum):
+    pending = "pending"
+    paid = "paid"
+    failed = "failed"
 
 
-class MessageDirection(str, enum.Enum):
-    INBOUND = "inbound"
-    OUTBOUND = "outbound"
+class MessageDirection(str, Enum):
+    inbound = "inbound"
+    outbound = "outbound"
 
 
-class MessageChannel(str, enum.Enum):
+class MessageChannel(str, Enum):
     SMS = "SMS"
     USSD = "USSD"
 
 
-class MessageType(str, enum.Enum):
-    REPORT = "report"
-    QUESTION = "question"
-    WEIGHING_NOTICE = "weighing_notice"
-    PRICE_CHANGE = "price_change"
-    PAYMENT_NOTICE = "payment_notice"
-    RESPONSE = "response"
-    OTHER = "other"
+class MessageType(str, Enum):
+    report = "report"
+    question = "question"
+    weighing_notice = "weighing_notice"
+    price_change = "price_change"
+    payment_notice = "payment_notice"
+    response = "response"
+    other = "other"
 
 
-class IssueCategory(str, enum.Enum):
-    FINANCIAL = "financial"
-    NON_FINANCIAL = "non_financial"
+class MessageCategory(str, Enum):
+    financial = "financial"
+    non_financial = "non_financial"
 
 
-class MessageStatus(str, enum.Enum):
-    RECEIVED = "received"
-    QUEUED = "queued"
-    SENT = "sent"
-    DELIVERED = "delivered"
-    FAILED = "failed"
+class MessageStatus(str, Enum):
+    received = "received"
+    queued = "queued"
+    sent = "sent"
+    delivered = "delivered"
+    failed = "failed"
 
 
-class TaskPriority(str, enum.Enum):
-    LOW = "low"
-    NORMAL = "normal"
-    HIGH = "high"
+class TaskPriority(str, Enum):
+    low = "low"
+    normal = "normal"
+    high = "high"
 
 
-class TaskStatus(str, enum.Enum):
-    OPEN = "open"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+class TaskStatus(str, Enum):
+    open = "open"
+    in_progress = "in_progress"
+    completed = "completed"
+    cancelled = "cancelled"

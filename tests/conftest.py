@@ -1,21 +1,32 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, configure_mappers
-from models import Base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
+import models  # noqa: F401
+from database import Base
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def engine():
-    configure_mappers()
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    yield engine
-    Base.metadata.drop_all(engine)
-    engine.dispose()
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    try:
+        Base.metadata.create_all(bind=engine)
+        yield engine
+    finally:
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
 
 
-@pytest.fixture
-def session(engine):
-    with Session(engine) as session:
+@pytest.fixture()
+def db_session(engine):
+    TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+    session = TestingSessionLocal()
+    try:
         yield session
-        session.rollback()
+    finally:
+        session.close()
