@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, text
@@ -11,36 +11,17 @@ from models.enums import DeviceStatus
 
 class WeighingDevice(Base):
     __tablename__ = "weighing_device"
+    __table_args__ = (UniqueConstraint("serial_number", name="uq_weighing_device_serial"),)
 
-    device_id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
-    )
+    device_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
     collection_point_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("collection_point.collection_point_id"),
-        nullable=False,
-        index=True,
+        UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=False, index=True
     )
-    serial_number = Column(String(100), nullable=False, unique=True)
+    serial_number = Column(String(100), nullable=False)
     status = Column(
-        Enum(DeviceStatus, name="device_status"),
-        nullable=False,
-        default=DeviceStatus.active,
-        server_default="active",
+        Enum(DeviceStatus, name="device_status"), nullable=False, default=DeviceStatus.ACTIVE, server_default="active"
     )
-    registered_at = Column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    registered_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    collection_point = relationship(
-        "CollectionPoint",
-        back_populates="weighing_devices",
-    )
-
-    produce_records = relationship(
-        "ProduceRecord",
-        back_populates="weighing_device",
-    )
+    collection_point = relationship("CollectionPoint", back_populates="weighing_devices")
+    produce_records = relationship("ProduceRecord", back_populates="device")

@@ -1,59 +1,43 @@
-import uuid
-from models.audit_log import AuditLog
+import pytest
+from models import AuditLog
+from tests.helpers import column, foreign_key_targets, relationship_names
 
 
-def test_audit_creation():
-    log = AuditLog(
-        audit_log_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
-        action="create",
-        entity_type="User",
-        entity_id=uuid.uuid4(),
-    )
-    assert log.action == "create"
+@pytest.mark.parametrize(
+    "name",
+    [
+        "audit_log_id",
+        "user_id",
+        "action",
+        "entity_type",
+        "entity_id",
+        "old_values",
+        "new_values",
+        "created_at",
+    ],
+)
+def test_audit_columns_exist(name):
+    assert name in AuditLog.__table__.columns
 
 
-def test_audit_old_values():
-    log = AuditLog(
-        audit_log_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
-        action="update",
-        entity_type="User",
-        entity_id=uuid.uuid4(),
-        old_values={"name": "A"},
-    )
-    assert log.old_values["name"] == "A"
+@pytest.mark.parametrize("name", ["audit_log_id", "action", "entity_type", "entity_id", "created_at"])
+def test_audit_required_columns(name):
+    assert column(AuditLog, name).nullable is False
 
 
-def test_audit_new_values():
-    log = AuditLog(
-        audit_log_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
-        action="update",
-        entity_type="User",
-        entity_id=uuid.uuid4(),
-        new_values={"name": "B"},
-    )
-    assert log.new_values["name"] == "B"
+@pytest.mark.parametrize("name", ["user_id", "old_values", "new_values"])
+def test_audit_optional_columns(name):
+    assert column(AuditLog, name).nullable is True
 
 
-def test_audit_missing_entity_id():
-    log = AuditLog(
-        audit_log_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
-        action="delete",
-        entity_type="User",
-        entity_id=None,
-    )
-    assert log.entity_id is None
+def test_audit_actor_references_users():
+    assert foreign_key_targets(AuditLog, "user_id") == {"users.user_id"}
 
 
-def test_audit_action_delete():
-    log = AuditLog(
-        audit_log_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
-        action="delete",
-        entity_type="User",
-        entity_id=uuid.uuid4(),
-    )
-    assert log.action == "delete"
+def test_audit_user_relationship_exists():
+    assert "user" in relationship_names(AuditLog)
+
+
+def test_audit_json_values_use_json_type():
+    assert column(AuditLog, "old_values").type.__class__.__name__ == "JSON"
+    assert column(AuditLog, "new_values").type.__class__.__name__ == "JSON"

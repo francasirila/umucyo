@@ -1,63 +1,105 @@
-import uuid
-from decimal import Decimal
-from models.produce_record import ProduceRecord
-from models.enums import DeliveryStatus
+import pytest
+from models import ProduceRecord
+from tests.helpers import (
+    column,
+    constraint_names,
+    foreign_key_targets,
+    relationship_names,
+)
 
 
-def create_mock_record():
-    return ProduceRecord(
-        produce_record_id=uuid.uuid4(),
-        cooperative_id=uuid.uuid4(),
-        farmer_id=uuid.uuid4(),
-        collection_point_id=uuid.uuid4(),
-        device_id=uuid.uuid4(),
-        produce_price_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
-        delivery_status=DeliveryStatus.accepted,
-        gross_weight_kg=Decimal("20.0"),
-        rejected_weight_kg=Decimal("0.0"),
-        accepted_weight_kg=Decimal("20.0"),
-        agent_notes="Good",
-        amount=Decimal("6000.0"),
-    )
+@pytest.mark.parametrize(
+    "name",
+    [
+        "produce_record_id",
+        "produce_price_id",
+        "farmer_id",
+        "device_id",
+        "payment_transaction_id",
+        "collection_point_id",
+        "delivery_status",
+        "user_id",
+        "gross_weight_kg",
+        "rejected_weight_kg",
+        "accepted_weight_kg",
+        "agent_notes",
+        "amount",
+        "recorded_at",
+    ],
+)
+def test_produce_record_columns_exist(name):
+    assert name in ProduceRecord.__table__.columns
 
 
-def test_record_creation():
-    assert create_mock_record().accepted_weight_kg == Decimal("20.0")
+@pytest.mark.parametrize(
+    "name",
+    [
+        "produce_record_id",
+        "produce_price_id",
+        "farmer_id",
+        "device_id",
+        "collection_point_id",
+        "delivery_status",
+        "user_id",
+        "gross_weight_kg",
+        "rejected_weight_kg",
+        "accepted_weight_kg",
+        "agent_notes",
+        "amount",
+        "recorded_at",
+    ],
+)
+def test_produce_record_required_columns(name):
+    assert column(ProduceRecord, name).nullable is False
 
 
-def test_record_zero_weight():
-    record = create_mock_record()
-    record.gross_weight_kg = Decimal("0.0")
-    record.accepted_weight_kg = Decimal("0.0")
-    assert record.accepted_weight_kg == 0
+def test_payment_transaction_reference_is_optional():
+    assert column(ProduceRecord, "payment_transaction_id").nullable is True
 
 
-def test_record_full_rejection():
-    record = create_mock_record()
-    record.delivery_status = DeliveryStatus.rejected
-    record.accepted_weight_kg = Decimal("0.0")
-    assert record.delivery_status == DeliveryStatus.rejected
+@pytest.mark.parametrize(
+    "name,target",
+    [
+        ("farmer_id", "users.user_id"),
+        ("user_id", "users.user_id"),
+        ("device_id", "weighing_device.device_id"),
+        ("produce_price_id", "produce_price.produce_price_id"),
+        ("collection_point_id", "collection_point.collection_point_id"),
+        ("payment_transaction_id", "payment_transaction.payment_transaction_id"),
+    ],
+)
+def test_produce_record_foreign_keys(name, target):
+    assert foreign_key_targets(ProduceRecord, name) == {target}
 
 
-def test_record_unicode_notes():
-    record = create_mock_record()
-    record.agent_notes = "Meza (Leaf)"
-    assert "(Leaf)" in record.agent_notes
+@pytest.mark.parametrize(
+    "name",
+    [
+        "ck_produce_gross_nonnegative",
+        "ck_produce_rejected_valid",
+        "ck_produce_accepted_valid",
+        "ck_produce_weight_balance",
+        "ck_produce_amount_nonnegative",
+    ],
+)
+def test_produce_record_constraints_exist(name):
+    assert name in constraint_names(ProduceRecord)
 
 
-def test_record_max_weight():
-    record = create_mock_record()
-    record.gross_weight_kg = Decimal("9999999.999")
-    assert record.gross_weight_kg == Decimal("9999999.999")
+@pytest.mark.parametrize(
+    "name",
+    [
+        "produce_price",
+        "farmer",
+        "device",
+        "payment_transaction",
+        "collection_point",
+        "agent",
+    ],
+)
+def test_produce_record_relationships_exist(name):
+    assert name in relationship_names(ProduceRecord)
 
 
-def test_record_rejected_exceeds_gross():
-    record = create_mock_record()
-    record.rejected_weight_kg = Decimal("25.0")
-    assert record.rejected_weight_kg > record.gross_weight_kg
-
-
-def test_record_amount_calc():
-    record = create_mock_record()
-    assert record.amount == record.accepted_weight_kg * Decimal("300.00")
+def test_produce_record_has_no_cooperative_id():
+    assert "cooperative_id" not in ProduceRecord.__table__.columns

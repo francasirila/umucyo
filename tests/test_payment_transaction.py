@@ -1,57 +1,89 @@
-import uuid
-from datetime import date
-from models.payment_transaction import PaymentTransaction
-from models.enums import PaymentStatus
+import pytest
+from models import PaymentTransaction, PaymentStatus
+from tests.helpers import (
+    column,
+    constraint_names,
+    foreign_key_targets,
+    relationship_names,
+)
 
 
-def create_mock_payment():
-    return PaymentTransaction(
-        payment_transaction_id=uuid.uuid4(),
-        farmer_id=uuid.uuid4(),
-        cooperative_id=uuid.uuid4(),
-        initiated_by=uuid.uuid4(),
-        batch_id=uuid.uuid4(),
-        period=date.today(),
-        quantity=10,
-        amount=3000,
-        status=PaymentStatus.paid,
-        transaction_reference="REF-1",
-    )
+@pytest.mark.parametrize(
+    "name",
+    [
+        "payment_transaction_id",
+        "farmer_id",
+        "user_id",
+        "provider",
+        "period_start",
+        "period_end",
+        "quantity",
+        "amount",
+        "transaction_reference",
+        "failure_reason",
+        "status",
+        "approved_at",
+        "approved_by",
+        "payment_date",
+    ],
+)
+def test_payment_columns_exist(name):
+    assert name in PaymentTransaction.__table__.columns
 
 
-def test_payment_creation():
-    assert create_mock_payment().amount == 3000
+@pytest.mark.parametrize(
+    "name",
+    [
+        "payment_transaction_id",
+        "farmer_id",
+        "user_id",
+        "provider",
+        "period_start",
+        "period_end",
+        "quantity",
+        "amount",
+        "transaction_reference",
+        "status",
+    ],
+)
+def test_payment_required_columns(name):
+    assert column(PaymentTransaction, name).nullable is False
 
 
-def test_payment_zero_amount():
-    payment = create_mock_payment()
-    payment.amount = 0
-    assert payment.amount == 0
+@pytest.mark.parametrize("name", ["failure_reason", "approved_at", "approved_by", "payment_date"])
+def test_payment_optional_columns(name):
+    assert column(PaymentTransaction, name).nullable is True
 
 
-def test_payment_failed_status():
-    payment = create_mock_payment()
-    payment.status = PaymentStatus.failed
-    assert payment.status == PaymentStatus.failed
+@pytest.mark.parametrize("name", ["farmer_id", "user_id", "approved_by"])
+def test_payment_user_foreign_keys(name):
+    assert foreign_key_targets(PaymentTransaction, name) == {"users.user_id"}
 
 
-def test_payment_network_timeout():
-    payment = create_mock_payment()
-    payment.failure_reason = "Network timeout"
-    assert "timeout" in payment.failure_reason.lower()
+@pytest.mark.parametrize(
+    "name",
+    [
+        "ck_payment_period_valid",
+        "ck_payment_quantity_nonnegative",
+        "ck_payment_amount_positive",
+    ],
+)
+def test_payment_constraints_exist(name):
+    assert name in constraint_names(PaymentTransaction)
 
 
-def test_payment_pending_status():
-    payment = create_mock_payment()
-    payment.status = PaymentStatus.pending
-    assert payment.status == PaymentStatus.pending
+@pytest.mark.parametrize("name", ["farmer", "initiated_by", "approved_by_user", "produce_records"])
+def test_payment_relationships_exist(name):
+    assert name in relationship_names(PaymentTransaction)
 
 
-def test_payment_max_amount():
-    payment = create_mock_payment()
-    payment.amount = 999999999
-    assert payment.amount == 999999999
+def test_payment_default_status():
+    assert PaymentTransaction.status.default.arg == PaymentStatus.PENDING
 
 
-def test_payment_reference_created():
-    assert create_mock_payment().transaction_reference == "REF-1"
+def test_payment_default_provider():
+    assert PaymentTransaction.provider.default.arg == "Flutterwave"
+
+
+def test_payment_has_no_cooperative_id():
+    assert "cooperative_id" not in PaymentTransaction.__table__.columns

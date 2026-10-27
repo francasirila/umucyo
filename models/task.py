@@ -1,13 +1,6 @@
 import uuid
 
-from sqlalchemy import (
-    CheckConstraint,
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Text,
-)
+from sqlalchemy import CheckConstraint, Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, text
@@ -18,91 +11,21 @@ from models.enums import TaskPriority, TaskStatus
 
 class Task(Base):
     __tablename__ = "task"
-    __table_args__ = (
-        CheckConstraint(
-            "(status = 'completed') = (completed_at IS NOT NULL)",
-            name="ck_task_completed_at",
-        ),
-    )
+    __table_args__ = (CheckConstraint("completed_at IS NULL OR status = 'COMPLETED'", name="ck_task_completion_timestamp"),)
 
-    task_id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
-    )
-    cooperative_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("cooperative.cooperative_id"),
-        nullable=False,
-        index=True,
-    )
-
-    farmer_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("farmer.farmer_id"),
-        nullable=True,
-        index=True,
-    )
-
-    created_by_user_id = Column(
-        UUID(as_uuid=True), ForeignKey("user.user_id"), nullable=False
-    )
-    assigned_to_user_id = Column(
-        UUID(as_uuid=True), ForeignKey("user.user_id"), nullable=False, index=True
-    )
-    collection_point_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("collection_point.collection_point_id"),
-        nullable=True,
-    )
-    message_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("message_log.message_id"),
-        nullable=True,
-        index=True,
-    )
-    description = Column(Text, nullable=False)
-    priority = Column(
-        Enum(TaskPriority, name="task_priority"),
-        nullable=False,
-        default=TaskPriority.normal,
-        server_default="normal",
-    )
-    created_at = Column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-    status = Column(
-        Enum(TaskStatus, name="task_status"),
-        nullable=False,
-        default=TaskStatus.open,
-        server_default="open",
-    )
+    task_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
+    assigned_to_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
+    farmer_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=True)
+    collection_point_id = Column(UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=True)
+    message_id = Column(UUID(as_uuid=True), ForeignKey("message_log.message_id"), nullable=True)
+    description = Column(String(1000), nullable=False)
+    priority = Column(Enum(TaskPriority, name="task_priority"), nullable=False, default=TaskPriority.NORMAL)
+    status = Column(Enum(TaskStatus, name="task_status"), nullable=False, default=TaskStatus.OPEN)
     completed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    cooperative = relationship(
-        "Cooperative",
-        back_populates="tasks",
-    )
-
-    farmer = relationship(
-        "Farmer",
-        back_populates="tasks",
-    )
-
-    collection_point = relationship(
-        "CollectionPoint",
-        back_populates="tasks",
-    )
-
-    assigned_user = relationship(
-        "User",
-        back_populates="tasks_assigned",
-        foreign_keys=[assigned_to_user_id],
-    )
-
-    created_by = relationship(
-        "User",
-        back_populates="tasks_created",
-        foreign_keys=[created_by_user_id],
-    )
+    created_by = relationship("User", back_populates="created_tasks", foreign_keys=[created_by_user_id])
+    assigned_to = relationship("User", back_populates="assigned_tasks", foreign_keys=[assigned_to_user_id])
+    collection_point = relationship("CollectionPoint", back_populates="tasks")
+    message = relationship("MessageLog", back_populates="tasks")

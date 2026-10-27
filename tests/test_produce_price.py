@@ -1,53 +1,68 @@
-import uuid
-from datetime import datetime
-from decimal import Decimal
-from models.produce_price import ProducePrice
+import pytest
+from models import ProducePrice
+from tests.helpers import (
+    column,
+    constraint_names,
+    foreign_key_targets,
+    relationship_names,
+)
 
 
-def create_mock_price():
-    return ProducePrice(
-        produce_price_id=uuid.uuid4(),
-        cooperative_id=uuid.uuid4(),
-        unit="kg",
-        price_per_unit=Decimal("300.50"),
-        effective_from=datetime.now(),
-        created_by_user_id=uuid.uuid4(),
-    )
+@pytest.mark.parametrize(
+    "name",
+    [
+        "produce_price_id",
+        "cooperative_admin_id",
+        "unit",
+        "price_per_unit",
+        "effective_from",
+        "effective_to",
+        "created_by_user_id",
+        "created_at",
+    ],
+)
+def test_price_columns_exist(name):
+    assert name in ProducePrice.__table__.columns
 
 
-def test_price_creation():
-    assert create_mock_price().price_per_unit == Decimal("300.50")
+@pytest.mark.parametrize(
+    "name",
+    [
+        "produce_price_id",
+        "cooperative_admin_id",
+        "unit",
+        "price_per_unit",
+        "effective_from",
+        "created_by_user_id",
+        "created_at",
+    ],
+)
+def test_price_required_columns(name):
+    assert column(ProducePrice, name).nullable is False
 
 
-def test_price_negative():
-    price = create_mock_price()
-    price.price_per_unit = Decimal("-10.00")
-    assert price.price_per_unit < 0
+def test_price_effective_to_is_optional():
+    assert column(ProducePrice, "effective_to").nullable is True
 
 
-def test_price_zero():
-    price = create_mock_price()
-    price.price_per_unit = Decimal("0.00")
-    assert price.price_per_unit == 0
+@pytest.mark.parametrize("name", ["cooperative_admin_id", "created_by_user_id"])
+def test_price_user_foreign_keys(name):
+    assert foreign_key_targets(ProducePrice, name) == {"users.user_id"}
 
 
-def test_price_future_date():
-    price = create_mock_price()
-    price.effective_from = datetime(2030, 1, 1)
-    assert price.effective_from.year == 2030
+@pytest.mark.parametrize("name", ["ck_produce_price_nonnegative", "ck_produce_price_valid_period"])
+def test_price_constraints_exist(name):
+    assert name in constraint_names(ProducePrice)
 
 
-def test_price_max_decimal():
-    price = create_mock_price()
-    price.price_per_unit = Decimal("9999999999.99")
-    assert price.price_per_unit == Decimal("9999999999.99")
+@pytest.mark.parametrize("name", ["cooperative_admin", "created_by", "produce_records"])
+def test_price_relationships_exist(name):
+    assert name in relationship_names(ProducePrice)
 
 
-def test_price_kg_unit():
-    assert create_mock_price().unit == "kg"
+def test_price_default_unit_is_kg():
+    assert ProducePrice.unit.default.arg == "kg"
 
 
-def test_price_missing_effective_to():
-    price = create_mock_price()
-    price.effective_to = None
-    assert price.effective_to is None
+def test_price_has_no_cooperative_id():
+    assert "cooperative_id" not in ProducePrice.__table__.columns

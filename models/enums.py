@@ -1,40 +1,36 @@
 import enum
 
 
-class CooperativeStatus(str, enum.Enum):
-    active = "active"
-    inactive = "inactive"
-
-
 class UserRole(str, enum.Enum):
-    admin = "admin"
-    agent = "agent"
+    ADMIN = "admin"
+    AGENT = "agent"
+    FARMER = "farmer"
 
 
 class AccountStatus(str, enum.Enum):
-    active = "active"
-    inactive = "inactive"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
 
 
 class DeliveryStatus(str, enum.Enum):
-    accepted = "accepted"
-    rejected = "rejected"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
 
 
 class DeviceStatus(str, enum.Enum):
-    active = "active"
-    inactive = "inactive"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
 
 
 class PaymentStatus(str, enum.Enum):
-    pending = "pending"
-    paid = "paid"
-    failed = "failed"
+    PENDING = "pending"
+    PAID = "paid"
+    FAILED = "failed"
 
 
 class MessageDirection(str, enum.Enum):
-    inbound = "inbound"
-    outbound = "outbound"
+    INBOUND = "inbound"
+    OUTBOUND = "outbound"
 
 
 class MessageChannel(str, enum.Enum):
@@ -43,36 +39,36 @@ class MessageChannel(str, enum.Enum):
 
 
 class MessageType(str, enum.Enum):
-    report = "report"
-    question = "question"
-    weighing_notice = "weighing_notice"
-    price_change = "price_change"
-    payment_notice = "payment_notice"
-    response = "response"
-    other = "other"
+    REPORT = "report"
+    QUESTION = "question"
+    WEIGHING_NOTICE = "weighing_notice"
+    PRICE_CHANGE = "price_change"
+    PAYMENT_NOTICE = "payment_notice"
+    RESPONSE = "response"
+    OTHER = "other"
 
 
 class IssueCategory(str, enum.Enum):
-    financial = "financial"
-    non_financial = "non_financial"
+    FINANCIAL = "financial"
+    NON_FINANCIAL = "non_financial"
 
 
 class MessageStatus(str, enum.Enum):
-    received = "received"
-    queued = "queued"
-    sent = "sent"
-    delivered = "delivered"
-    failed = "failed"
+    RECEIVED = "received"
+    QUEUED = "queued"
+    SENT = "sent"
+    DELIVERED = "delivered"
+    FAILED = "failed"
 
 
 class TaskPriority(str, enum.Enum):
-    low = "low"
-    normal = "normal"
-    high = "high"
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
 
 
 class TaskStatus(str, enum.Enum):
-    open = "open"
-    in_progress = "in_progress"
-    completed = "completed"
-    cancelled = "cancelled"
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"

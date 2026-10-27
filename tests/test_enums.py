@@ -1,52 +1,86 @@
+import pytest
 from models.enums import (
-    CooperativeStatus,
-    UserRole,
     AccountStatus,
     DeliveryStatus,
     DeviceStatus,
-    PaymentStatus,
-    MessageDirection,
+    IssueCategory,
     MessageChannel,
+    MessageDirection,
+    MessageStatus,
     MessageType,
+    PaymentStatus,
     TaskPriority,
+    TaskStatus,
+    UserRole,
 )
 
 
-def test_cooperative_status_enum():
-    assert CooperativeStatus.active.value == "active"
+@pytest.mark.parametrize(
+    "role,value",
+    [(UserRole.ADMIN, "admin"), (UserRole.AGENT, "agent"), (UserRole.FARMER, "farmer")],
+)
+def test_user_role_values(role, value):
+    assert role.value == value
 
 
-def test_user_role_enum():
-    assert UserRole.admin.value == "admin"
+@pytest.mark.parametrize(
+    "enum_type",
+    [
+        AccountStatus,
+        DeliveryStatus,
+        DeviceStatus,
+        IssueCategory,
+        MessageChannel,
+        MessageDirection,
+        MessageStatus,
+        MessageType,
+        PaymentStatus,
+        TaskPriority,
+        TaskStatus,
+        UserRole,
+    ],
+)
+def test_enums_are_enumerations(enum_type):
+    assert len(list(enum_type)) > 0
 
 
-def test_payment_status_enum():
-    assert PaymentStatus.paid.value == "paid"
+@pytest.mark.parametrize(
+    "enum_type",
+    [
+        AccountStatus,
+        DeliveryStatus,
+        DeviceStatus,
+        IssueCategory,
+        MessageChannel,
+        MessageDirection,
+        MessageStatus,
+        MessageType,
+        PaymentStatus,
+        TaskPriority,
+        TaskStatus,
+        UserRole,
+    ],
+)
+def test_enum_values_are_strings(enum_type):
+    assert all(isinstance(item.value, str) for item in enum_type)
 
 
-def test_message_channel_enum():
-    assert MessageChannel.USSD.value == "USSD"
+def test_account_status_values():
+    assert {item.value for item in AccountStatus} == {"active", "inactive"}
 
 
-def test_account_status():
-    assert AccountStatus.active.value == "active"
+def test_delivery_status_values():
+    assert {item.value for item in DeliveryStatus} == {"accepted", "rejected"}
 
 
-def test_delivery_status():
-    assert DeliveryStatus.accepted.value == "accepted"
+def test_payment_status_values():
+    assert {item.value for item in PaymentStatus} == {"pending", "paid", "failed"}
 
 
-def test_device_status():
-    assert DeviceStatus.active.value == "active"
-
-
-def test_message_direction():
-    assert MessageDirection.inbound.value == "inbound"
-
-
-def test_message_type():
-    assert MessageType.report.value == "report"
-
-
-def test_task_priority():
-    assert TaskPriority.high.value == "high"
+def test_task_status_values():
+    assert {item.value for item in TaskStatus} == {
+        "open",
+        "in_progress",
+        "completed",
+        "cancelled",
+    }

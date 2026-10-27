@@ -1,13 +1,6 @@
 import uuid
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    String,
-    UniqueConstraint,
-)
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, text
@@ -18,59 +11,23 @@ from models.enums import AccountStatus
 
 class CollectionPoint(Base):
     __tablename__ = "collection_point"
-    __table_args__ = (
-        UniqueConstraint(
-            "collection_point_id",
-            "cooperative_id",
-            name="uq_collection_point_id_cooperative",
-        ),
-    )
 
     collection_point_id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
     )
-    cooperative_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("cooperative.cooperative_id"),
-        nullable=False,
-        index=True,
-    )
-    collection_name = Column(String(100), nullable=False)
-    location = Column(String(100), nullable=False)
+    collection_name = Column(String(150), nullable=False)
+    location = Column(String(200), nullable=False)
     status = Column(
-        Enum(AccountStatus, name="collection_point_status"),
-        nullable=False,
-        default=AccountStatus.active,
-        server_default="active",
+        Enum(AccountStatus, name="account_status"), nullable=False, default=AccountStatus.ACTIVE, server_default="active"
     )
-    created_at = Column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    cooperative_admin_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False, index=True
     )
 
-    cooperative = relationship(
-        "Cooperative",
-        back_populates="collection_points",
-    )
-
-    agent_assignments = relationship(
-        "AgentAssignment",
-        back_populates="collection_point",
-    )
-
-    weighing_devices = relationship(
-        "WeighingDevice",
-        back_populates="collection_point",
-    )
-
-    produce_records = relationship(
-        "ProduceRecord",
-        back_populates="collection_point",
-    )
-
-    tasks = relationship(
-        "Task",
-        back_populates="collection_point",
-    )
+    cooperative_admin = relationship("User", back_populates="managed_collection_points", foreign_keys=[cooperative_admin_id])
+    farmers = relationship("User", back_populates="farmer_collection_point", foreign_keys="User.collection_point_id")
+    agent_assignments = relationship("AgentAssignment", back_populates="collection_point")
+    weighing_devices = relationship("WeighingDevice", back_populates="collection_point")
+    produce_records = relationship("ProduceRecord", back_populates="collection_point")
+    tasks = relationship("Task", back_populates="collection_point")

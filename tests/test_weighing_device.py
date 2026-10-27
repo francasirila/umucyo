@@ -1,40 +1,41 @@
-import uuid
-from models.weighing_device import WeighingDevice
-from models.enums import DeviceStatus
+import pytest
+from models import WeighingDevice, DeviceStatus
+from tests.helpers import (
+    column,
+    constraint_names,
+    foreign_key_targets,
+    relationship_names,
+)
 
 
-def create_mock_device():
-    return WeighingDevice(
-        device_id=uuid.uuid4(),
-        collection_point_id=uuid.uuid4(),
-        serial_number="SN-1",
-        status=DeviceStatus.active,
-    )
+@pytest.mark.parametrize(
+    "name",
+    ["device_id", "collection_point_id", "serial_number", "status", "registered_at"],
+)
+def test_device_columns_exist(name):
+    assert name in WeighingDevice.__table__.columns
 
 
-def test_device_creation():
-    assert create_mock_device().serial_number == "SN-1"
+@pytest.mark.parametrize(
+    "name",
+    ["device_id", "collection_point_id", "serial_number", "status", "registered_at"],
+)
+def test_device_required_columns(name):
+    assert column(WeighingDevice, name).nullable is False
 
 
-def test_device_inactive():
-    device = create_mock_device()
-    device.status = DeviceStatus.inactive
-    assert device.status == DeviceStatus.inactive
+def test_device_collection_point_foreign_key():
+    assert foreign_key_targets(WeighingDevice, "collection_point_id") == {"collection_point.collection_point_id"}
 
 
-def test_device_long_serial():
-    device = create_mock_device()
-    device.serial_number = "A" * 100
-    assert len(device.serial_number) == 100
+def test_device_serial_number_is_unique():
+    assert "uq_weighing_device_serial" in constraint_names(WeighingDevice)
 
 
-def test_device_empty_serial():
-    device = create_mock_device()
-    device.serial_number = ""
-    assert device.serial_number == ""
+def test_device_default_status():
+    assert WeighingDevice.status.default.arg == DeviceStatus.ACTIVE
 
 
-def test_device_special_serial():
-    device = create_mock_device()
-    device.serial_number = "SN-#123/X"
-    assert "#" in device.serial_number
+@pytest.mark.parametrize("name", ["collection_point", "produce_records"])
+def test_device_relationships(name):
+    assert name in relationship_names(WeighingDevice)

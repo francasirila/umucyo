@@ -1,57 +1,74 @@
-import uuid
-from models.task import Task
-from models.enums import TaskPriority, TaskStatus
+import pytest
+from models import Task, TaskPriority, TaskStatus
+from tests.helpers import (
+    column,
+    constraint_names,
+    foreign_key_targets,
+    relationship_names,
+)
 
 
-def create_mock_task():
-    return Task(
-        task_id=uuid.uuid4(),
-        cooperative_id=uuid.uuid4(),
-        farmer_id=uuid.uuid4(),
-        created_by_user_id=uuid.uuid4(),
-        assigned_to_user_id=uuid.uuid4(),
-        collection_point_id=uuid.uuid4(),
-        description="Visit",
-        priority=TaskPriority.normal,
-        status=TaskStatus.open,
-    )
+@pytest.mark.parametrize(
+    "name",
+    [
+        "task_id",
+        "created_by_user_id",
+        "assigned_to_user_id",
+        "collection_point_id",
+        "message_id",
+        "description",
+        "priority",
+        "created_at",
+        "status",
+        "completed_at",
+    ],
+)
+def test_task_columns_exist(name):
+    assert name in Task.__table__.columns
 
 
-def test_task_creation():
-    assert create_mock_task().description == "Visit"
+@pytest.mark.parametrize(
+    "name",
+    [
+        "task_id",
+        "created_by_user_id",
+        "assigned_to_user_id",
+        "description",
+        "priority",
+        "created_at",
+        "status",
+    ],
+)
+def test_task_required_columns(name):
+    assert column(Task, name).nullable is False
 
 
-def test_task_high_priority():
-    task = create_mock_task()
-    task.priority = TaskPriority.high
-    assert task.priority == TaskPriority.high
+@pytest.mark.parametrize("name", ["collection_point_id", "message_id", "completed_at"])
+def test_task_optional_columns(name):
+    assert column(Task, name).nullable is True
 
 
-def test_task_completed():
-    task = create_mock_task()
-    task.status = TaskStatus.completed
-    assert task.status == TaskStatus.completed
+@pytest.mark.parametrize("name", ["created_by_user_id", "assigned_to_user_id"])
+def test_task_user_foreign_keys(name):
+    assert foreign_key_targets(Task, name) == {"users.user_id"}
 
 
-def test_task_unicode_description():
-    task = create_mock_task()
-    task.description = "Gusura (Tractor)"
-    assert "(Tractor)" in task.description
+def test_task_completion_constraint_exists():
+    assert "ck_task_completion_timestamp" in constraint_names(Task)
 
 
-def test_task_missing_description():
-    task = create_mock_task()
-    task.description = None
-    assert task.description is None
+@pytest.mark.parametrize("name", ["created_by", "assigned_to", "collection_point", "message"])
+def test_task_relationships_exist(name):
+    assert name in relationship_names(Task)
 
 
-def test_task_low_priority():
-    task = create_mock_task()
-    task.priority = TaskPriority.low
-    assert task.priority == TaskPriority.low
+def test_task_default_priority():
+    assert Task.priority.default.arg == TaskPriority.NORMAL
 
 
-def test_task_max_description():
-    task = create_mock_task()
-    task.description = "A" * 5000
-    assert len(task.description) == 5000
+def test_task_default_status():
+    assert Task.status.default.arg == TaskStatus.OPEN
+
+
+def test_task_has_no_cooperative_id():
+    assert "cooperative_id" not in Task.__table__.columns
