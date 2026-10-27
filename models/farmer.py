@@ -9,9 +9,9 @@ class Farmer(User):
     __tablename__ = "farmer"
 
     farmer_id = Column(UUID(as_uuid=True), unique=True, nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), primary_key=True)
     collection_point_id = Column(UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=False)
-    registered_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
+    registered_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), primary_key=True)
     phone_number = Column(String(20), nullable=False)
 
     collection_point = relationship("CollectionPoint", back_populates="farmers")
