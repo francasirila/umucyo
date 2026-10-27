@@ -9,11 +9,12 @@ from models.user import User
 class CooperativeUser(User):
     __tablename__ = "cooperative_user"
 
-    cooperative_user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), primary_key=True)
+    cooperative_user_id = Column(UUID(as_uuid=True), default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     password_hash = Column(String(255), nullable=False)
     email = Column(String(150), nullable=False)
     cooperative_id = Column(UUID(as_uuid=True), ForeignKey("cooperative.cooperative_id"), nullable=False)
+    cooperative = relationship("Cooperative", back_populates="cooperative")
 
     assignments = relationship(
         "AgentAssignment",

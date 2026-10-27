@@ -9,7 +9,7 @@ class AuditLog(Base):
     __tablename__ = "audit_log"
 
     audit_log_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("cooperative_user.user_id"), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("cooperative_user.user_id"), nullable=False)
     action = Column(String(50), nullable=False)
     entity_type = Column(String(100), nullable=False)
     entity_id = Column(UUID(as_uuid=True), nullable=False)
