@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import CheckConstraint, Column, Date, DateTime, Enum, ForeignKey, Numeric, String
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 from models.enums import PaymentStatus
@@ -11,15 +11,8 @@ from models.enums import PaymentStatus
 
 class PaymentTransaction(Base):
     __tablename__ = "payment_transaction"
-    __table_args__ = (
-        CheckConstraint("period_start < period_end", name="ck_payment_period_valid"),
-        CheckConstraint("quantity >= 0", name="ck_payment_quantity_nonnegative"),
-        CheckConstraint("amount > 0", name="ck_payment_amount_positive"),
-    )
 
-    payment_transaction_id = Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
-    )
+    payment_transaction_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
     initiated_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=True)

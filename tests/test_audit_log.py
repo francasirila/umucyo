@@ -4,17 +4,7 @@ from tests.helpers import column, foreign_key_targets, relationship_names
 
 
 @pytest.mark.parametrize(
-    "name",
-    [
-        "audit_log_id",
-        "user_id",
-        "action",
-        "entity_type",
-        "entity_id",
-        "old_values",
-        "new_values",
-        "created_at",
-    ],
+    "name", ["audit_log_id", "user_id", "action", "entity_type", "entity_id", "old_values", "new_values", "created_at"]
 )
 def test_audit_columns_exist(name):
     assert name in AuditLog.__table__.columns

@@ -1,18 +1,17 @@
 import uuid
 
-from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey
+from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 
 
 class AgentAssignment(Base):
     __tablename__ = "agent_assignment"
-    __table_args__ = (CheckConstraint("ended_at IS NULL OR ended_at >= assigned_at", name="ck_agent_assignment_valid_dates"),)
 
-    assignment_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    assignment_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
     collection_point_id = Column(
         UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=False, index=True

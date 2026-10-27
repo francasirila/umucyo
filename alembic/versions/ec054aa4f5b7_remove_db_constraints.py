@@ -1,8 +1,8 @@
-"""create initial models
+"""remove db constraints
 
-Revision ID: 0e084a44a67c
-Revises:
-Create Date: 2026-10-26 15:14:43.693646
+Revision ID: ec054aa4f5b7
+Revises: 77690829ab60
+Create Date: 2026-10-27 12:42:00.030989
 
 """
 
@@ -10,8 +10,8 @@ from typing import Sequence, Union
 
 
 # revision identifiers, used by Alembic.
-revision: str = "0e084a44a67c"
-down_revision: Union[str, None] = None
+revision: str = "ec054aa4f5b7"
+down_revision: Union[str, None] = "77690829ab60"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1,21 +1,17 @@
 import uuid
 
-from sqlalchemy import CheckConstraint, Column, Date, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 
 
 class ProducePrice(Base):
     __tablename__ = "produce_price"
-    __table_args__ = (
-        CheckConstraint("price_per_unit >= 0", name="ck_produce_price_nonnegative"),
-        CheckConstraint("effective_to IS NULL OR effective_from < effective_to", name="ck_produce_price_valid_period"),
-    )
 
-    produce_price_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    produce_price_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     cooperative_admin_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
     created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
     unit = Column(String(20), nullable=False, default="kg", server_default="kg")

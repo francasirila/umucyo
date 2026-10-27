@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 from models.enums import AccountStatus
@@ -12,9 +12,7 @@ from models.enums import AccountStatus
 class CollectionPoint(Base):
     __tablename__ = "collection_point"
 
-    collection_point_id = Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
-    )
+    collection_point_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     collection_name = Column(String(150), nullable=False)
     location = Column(String(200), nullable=False)
     status = Column(

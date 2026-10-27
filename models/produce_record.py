@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import CheckConstraint, Column, DateTime, Enum, ForeignKey, Numeric, Text
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Numeric, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 from models.enums import DeliveryStatus
@@ -11,15 +11,8 @@ from models.enums import DeliveryStatus
 
 class ProduceRecord(Base):
     __tablename__ = "produce_record"
-    __table_args__ = (
-        CheckConstraint("gross_weight_kg >= 0", name="ck_produce_gross_nonnegative"),
-        CheckConstraint("rejected_weight_kg >= 0 AND rejected_weight_kg <= gross_weight_kg", name="ck_produce_rejected_valid"),
-        CheckConstraint("accepted_weight_kg >= 0 AND accepted_weight_kg <= gross_weight_kg", name="ck_produce_accepted_valid"),
-        CheckConstraint("gross_weight_kg = rejected_weight_kg + accepted_weight_kg", name="ck_produce_weight_balance"),
-        CheckConstraint("amount >= 0", name="ck_produce_amount_nonnegative"),
-    )
 
-    produce_record_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    produce_record_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False, index=True)
     device_id = Column(

@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 from models.enums import IssueCategory, MessageChannel, MessageDirection, MessageStatus, MessageType
@@ -11,9 +11,8 @@ from models.enums import IssueCategory, MessageChannel, MessageDirection, Messag
 
 class MessageLog(Base):
     __tablename__ = "message_log"
-    __table_args__ = (UniqueConstraint("provider_message_id", name="uq_message_log_provider_message_id"),)
 
-    message_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    message_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
     reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=True)
     message_type = Column(Enum(MessageType, name="message_type"), nullable=False)
@@ -22,7 +21,7 @@ class MessageLog(Base):
     direction = Column(Enum(MessageDirection, name="message_direction"), nullable=False)
     status = Column(Enum(MessageStatus, name="message_status"), nullable=False, default=MessageStatus.RECEIVED)
     content = Column(Text, nullable=True)
-    provider_message_id = Column(String(100), nullable=True, unique=True)
+    provider_message_id = Column(String(100), nullable=True)
     sent_at = Column(DateTime(timezone=True), nullable=True)
     received_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

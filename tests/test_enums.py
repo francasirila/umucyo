@@ -15,10 +15,7 @@ from models.enums import (
 )
 
 
-@pytest.mark.parametrize(
-    "role,value",
-    [(UserRole.ADMIN, "admin"), (UserRole.AGENT, "agent"), (UserRole.FARMER, "farmer")],
-)
+@pytest.mark.parametrize("role,value", [(UserRole.ADMIN, "admin"), (UserRole.AGENT, "agent"), (UserRole.FARMER, "farmer")])
 def test_user_role_values(role, value):
     assert role.value == value
 
@@ -62,7 +59,7 @@ def test_enums_are_enumerations(enum_type):
     ],
 )
 def test_enum_values_are_strings(enum_type):
-    assert all(isinstance(item.value, str) for item in enum_type)
+    assert all((isinstance(item.value, str) for item in enum_type))
 
 
 def test_account_status_values():
@@ -78,9 +75,4 @@ def test_payment_status_values():
 
 
 def test_task_status_values():
-    assert {item.value for item in TaskStatus} == {
-        "open",
-        "in_progress",
-        "completed",
-        "cancelled",
-    }
+    assert {item.value for item in TaskStatus} == {"open", "in_progress", "completed", "cancelled"}

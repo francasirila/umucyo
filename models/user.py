@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 from models.enums import AccountStatus, UserRole
@@ -11,13 +11,8 @@ from models.enums import AccountStatus, UserRole
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = (
-        UniqueConstraint("phone_number", name="uq_users_phone_number"),
-        UniqueConstraint("email", name="uq_users_email"),
-        UniqueConstraint("id_number", name="uq_users_id_number"),
-    )
 
-    user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     phone_number = Column(String(20), nullable=True)

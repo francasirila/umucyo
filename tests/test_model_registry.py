@@ -14,7 +14,6 @@ from models import (
     MessageLog,
 )
 
-
 MODEL_TABLES = [
     (User, "users"),
     (CollectionPoint, "collection_point"),
@@ -52,7 +51,7 @@ def test_only_merged_user_model_represents_cooperative_and_farmer_records():
 
 
 def test_removed_cooperative_id_is_not_present_on_any_table():
-    assert all("cooperative_id" not in table.columns for table in Base.metadata.tables.values())
+    assert all(("cooperative_id" not in table.columns for table in Base.metadata.tables.values()))
 
 
 @pytest.mark.parametrize("model,table_name", MODEL_TABLES)

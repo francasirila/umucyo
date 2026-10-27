@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import CheckConstraint, Column, DateTime, Enum, ForeignKey, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 from models.enums import TaskPriority, TaskStatus
@@ -11,9 +11,8 @@ from models.enums import TaskPriority, TaskStatus
 
 class Task(Base):
     __tablename__ = "task"
-    __table_args__ = (CheckConstraint("completed_at IS NULL OR status = 'COMPLETED'", name="ck_task_completion_timestamp"),)
 
-    task_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    task_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     assigned_to_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=True)

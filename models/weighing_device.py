@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import func
 
 from database import Base
 from models.enums import DeviceStatus
@@ -11,9 +11,8 @@ from models.enums import DeviceStatus
 
 class WeighingDevice(Base):
     __tablename__ = "weighing_device"
-    __table_args__ = (UniqueConstraint("serial_number", name="uq_weighing_device_serial"),)
 
-    device_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    device_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     collection_point_id = Column(
         UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=False, index=True
     )

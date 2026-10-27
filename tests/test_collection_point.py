@@ -4,30 +4,14 @@ from tests.helpers import column, foreign_key_targets, relationship_names
 
 
 @pytest.mark.parametrize(
-    "name",
-    [
-        "collection_point_id",
-        "cooperative_admin_id",
-        "collection_name",
-        "location",
-        "status",
-        "created_at",
-    ],
+    "name", ["collection_point_id", "cooperative_admin_id", "collection_name", "location", "status", "created_at"]
 )
 def test_collection_point_columns_exist(name):
     assert name in CollectionPoint.__table__.columns
 
 
 @pytest.mark.parametrize(
-    "name",
-    [
-        "collection_point_id",
-        "cooperative_admin_id",
-        "collection_name",
-        "location",
-        "status",
-        "created_at",
-    ],
+    "name", ["collection_point_id", "cooperative_admin_id", "collection_name", "location", "status", "created_at"]
 )
 def test_collection_point_required_columns(name):
     assert column(CollectionPoint, name).nullable is False
@@ -42,15 +26,7 @@ def test_collection_point_default_status():
 
 
 @pytest.mark.parametrize(
-    "name",
-    [
-        "cooperative_admin",
-        "farmers",
-        "agent_assignments",
-        "weighing_devices",
-        "produce_records",
-        "tasks",
-    ],
+    "name", ["cooperative_admin", "farmers", "agent_assignments", "weighing_devices", "produce_records", "tasks"]
 )
 def test_collection_point_relationships(name):
     assert name in relationship_names(CollectionPoint)
