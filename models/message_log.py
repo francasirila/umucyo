@@ -6,7 +6,13 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from database import Base
-from models.enums import IssueCategory, MessageChannel, MessageDirection, MessageStatus, MessageType
+from models.enums import (
+    IssueCategory,
+    MessageChannel,
+    MessageDirection,
+    MessageStatus,
+    MessageType,
+)
 
 
 class MessageLog(Base):
@@ -17,9 +23,17 @@ class MessageLog(Base):
     reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=True)
     message_type = Column(Enum(MessageType, name="message_type"), nullable=False)
     category = Column(Enum(IssueCategory, name="issue_category"), nullable=True)
-    channel = Column(Enum(MessageChannel, name="message_channel"), nullable=False, default=MessageChannel.SMS)
+    channel = Column(
+        Enum(MessageChannel, name="message_channel"),
+        nullable=False,
+        default=MessageChannel.SMS,
+    )
     direction = Column(Enum(MessageDirection, name="message_direction"), nullable=False)
-    status = Column(Enum(MessageStatus, name="message_status"), nullable=False, default=MessageStatus.RECEIVED)
+    status = Column(
+        Enum(MessageStatus, name="message_status"),
+        nullable=False,
+        default=MessageStatus.RECEIVED,
+    )
     content = Column(Text, nullable=True)
     provider_message_id = Column(String(100), nullable=True)
     sent_at = Column(DateTime(timezone=True), nullable=True)

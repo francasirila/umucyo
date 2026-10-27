@@ -1,7 +1,7 @@
 """initial unified schema
 
 Revision ID: 77690829ab60
-Revises: 
+Revises:
 Create Date: 2026-10-27 12:13:07.873166
 
 """

@@ -23,7 +23,16 @@ def test_task_columns_exist(name):
 
 
 @pytest.mark.parametrize(
-    "name", ["task_id", "created_by_user_id", "assigned_to_user_id", "description", "priority", "created_at", "status"]
+    "name",
+    [
+        "task_id",
+        "created_by_user_id",
+        "assigned_to_user_id",
+        "description",
+        "priority",
+        "created_at",
+        "status",
+    ],
 )
 def test_task_required_columns(name):
     assert column(Task, name).nullable is False

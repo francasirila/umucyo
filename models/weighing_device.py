@@ -14,11 +14,17 @@ class WeighingDevice(Base):
 
     device_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     collection_point_id = Column(
-        UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("collection_point.collection_point_id"),
+        nullable=False,
+        index=True,
     )
     serial_number = Column(String(100), nullable=False)
     status = Column(
-        Enum(DeviceStatus, name="device_status"), nullable=False, default=DeviceStatus.ACTIVE, server_default="active"
+        Enum(DeviceStatus, name="device_status"),
+        nullable=False,
+        default=DeviceStatus.ACTIVE,
+        server_default="active",
     )
     registered_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 

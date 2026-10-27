@@ -14,7 +14,10 @@ class AgentAssignment(Base):
     assignment_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
     collection_point_id = Column(
-        UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("collection_point.collection_point_id"),
+        nullable=False,
+        index=True,
     )
     assigned_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     assigned_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

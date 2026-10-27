@@ -22,7 +22,15 @@ def test_price_columns_exist(name):
 
 @pytest.mark.parametrize(
     "name",
-    ["produce_price_id", "cooperative_admin_id", "unit", "price_per_unit", "effective_from", "created_by_user_id", "created_at"],
+    [
+        "produce_price_id",
+        "cooperative_admin_id",
+        "unit",
+        "price_per_unit",
+        "effective_from",
+        "created_by_user_id",
+        "created_at",
+    ],
 )
 def test_price_required_columns(name):
     assert column(ProducePrice, name).nullable is False

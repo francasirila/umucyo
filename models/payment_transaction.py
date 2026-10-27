@@ -25,7 +25,11 @@ class PaymentTransaction(Base):
     amount = Column(Numeric(12, 2), nullable=False)
     approved_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
-    status = Column(Enum(PaymentStatus, name="payment_status"), nullable=False, default=PaymentStatus.PENDING)
+    status = Column(
+        Enum(PaymentStatus, name="payment_status"),
+        nullable=False,
+        default=PaymentStatus.PENDING,
+    )
     failure_reason = Column(String(500), nullable=True)
     payment_date = Column(DateTime(timezone=True), nullable=True)
 

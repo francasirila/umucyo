@@ -4,13 +4,30 @@ from tests.helpers import column, foreign_key_targets, relationship_names
 
 
 @pytest.mark.parametrize(
-    "name", ["assignment_id", "user_id", "collection_point_id", "assigned_by_user_id", "assigned_at", "ended_at"]
+    "name",
+    [
+        "assignment_id",
+        "user_id",
+        "collection_point_id",
+        "assigned_by_user_id",
+        "assigned_at",
+        "ended_at",
+    ],
 )
 def test_assignment_columns_exist(name):
     assert name in AgentAssignment.__table__.columns
 
 
-@pytest.mark.parametrize("name", ["assignment_id", "user_id", "collection_point_id", "assigned_by_user_id", "assigned_at"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "assignment_id",
+        "user_id",
+        "collection_point_id",
+        "assigned_by_user_id",
+        "assigned_at",
+    ],
+)
 def test_assignment_required_columns(name):
     assert column(AgentAssignment, name).nullable is False
 

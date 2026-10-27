@@ -81,7 +81,17 @@ def test_produce_record_constraints_exist(name):
     pass
 
 
-@pytest.mark.parametrize("name", ["produce_price", "farmer", "device", "payment_transaction", "collection_point", "agent"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "produce_price",
+        "farmer",
+        "device",
+        "payment_transaction",
+        "collection_point",
+        "agent",
+    ],
+)
 def test_produce_record_relationships_exist(name):
     assert name in relationship_names(ProduceRecord)
 

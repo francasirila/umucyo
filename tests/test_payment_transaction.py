@@ -55,7 +55,14 @@ def test_payment_user_foreign_keys(name):
     assert foreign_key_targets(PaymentTransaction, name) == {"users.user_id"}
 
 
-@pytest.mark.parametrize("name", ["ck_payment_period_valid", "ck_payment_quantity_nonnegative", "ck_payment_amount_positive"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "ck_payment_period_valid",
+        "ck_payment_quantity_nonnegative",
+        "ck_payment_amount_positive",
+    ],
+)
 def test_payment_constraints_exist(name):
     pass
 

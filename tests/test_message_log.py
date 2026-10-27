@@ -25,12 +25,33 @@ def test_message_columns_exist(name):
     assert name in MessageLog.__table__.columns
 
 
-@pytest.mark.parametrize("name", ["message_id", "farmer_id", "direction", "channel", "message_type", "status", "created_at"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "message_id",
+        "farmer_id",
+        "direction",
+        "channel",
+        "message_type",
+        "status",
+        "created_at",
+    ],
+)
 def test_message_required_columns(name):
     assert column(MessageLog, name).nullable is False
 
 
-@pytest.mark.parametrize("name", ["content", "category", "sent_at", "reviewed_by", "received_at", "provider_message_id"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "content",
+        "category",
+        "sent_at",
+        "reviewed_by",
+        "received_at",
+        "provider_message_id",
+    ],
+)
 def test_message_optional_columns(name):
     assert column(MessageLog, name).nullable is True
 

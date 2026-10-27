@@ -3,12 +3,18 @@ from models import WeighingDevice, DeviceStatus
 from tests.helpers import column, foreign_key_targets, relationship_names
 
 
-@pytest.mark.parametrize("name", ["device_id", "collection_point_id", "serial_number", "status", "registered_at"])
+@pytest.mark.parametrize(
+    "name",
+    ["device_id", "collection_point_id", "serial_number", "status", "registered_at"],
+)
 def test_device_columns_exist(name):
     assert name in WeighingDevice.__table__.columns
 
 
-@pytest.mark.parametrize("name", ["device_id", "collection_point_id", "serial_number", "status", "registered_at"])
+@pytest.mark.parametrize(
+    "name",
+    ["device_id", "collection_point_id", "serial_number", "status", "registered_at"],
+)
 def test_device_required_columns(name):
     assert column(WeighingDevice, name).nullable is False
 

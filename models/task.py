@@ -16,10 +16,18 @@ class Task(Base):
     created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     assigned_to_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=True)
-    collection_point_id = Column(UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=True)
+    collection_point_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("collection_point.collection_point_id"),
+        nullable=True,
+    )
     message_id = Column(UUID(as_uuid=True), ForeignKey("message_log.message_id"), nullable=True)
     description = Column(String(1000), nullable=False)
-    priority = Column(Enum(TaskPriority, name="task_priority"), nullable=False, default=TaskPriority.NORMAL)
+    priority = Column(
+        Enum(TaskPriority, name="task_priority"),
+        nullable=False,
+        default=TaskPriority.NORMAL,
+    )
     status = Column(Enum(TaskStatus, name="task_status"), nullable=False, default=TaskStatus.OPEN)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
