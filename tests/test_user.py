@@ -3,7 +3,6 @@ from models import User, UserRole, AccountStatus
 from tests.helpers import (
     column,
     constraint_names,
-    foreign_key_targets,
     relationship_names,
 )
 

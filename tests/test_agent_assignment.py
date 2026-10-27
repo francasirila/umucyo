@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 import pytest
 from models import AgentAssignment
 from tests.helpers import (
