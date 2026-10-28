@@ -8,8 +8,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from routers.produce_record import router
 
-import models  # noqa: F401
 from database import Base, get_db
 from models import (
     CollectionPoint,
@@ -47,9 +47,6 @@ def db_session(engine):
         session.close()
 
 
-# --------------------------------------------------------------------- #
-# Helpers used by the fixtures below                                     #
-# --------------------------------------------------------------------- #
 
 
 def _make_cooperative(db_session, **overrides) -> Cooperative:
@@ -148,7 +145,6 @@ def _make_price(db_session, cooperative, created_by, **overrides) -> ProducePric
 
 
 def build_graph(db_session) -> SimpleNamespace:
-    """All parent rows required by one valid produce record."""
     cooperative = _make_cooperative(db_session)
     collection_point = _make_collection_point(db_session, cooperative)
     agent = _make_agent(db_session, cooperative)
@@ -168,12 +164,10 @@ def build_graph(db_session) -> SimpleNamespace:
 
 @pytest.fixture()
 def produce_graph(db_session) -> SimpleNamespace:
-    """All parent rows required by one valid produce record."""
     return build_graph(db_session)
 
 
 def make_produce_record(graph: SimpleNamespace, **overrides) -> ProduceRecord:
-    """Persist one produce record on top of a produce_graph fixture."""
     record = ProduceRecord(
         **{
             "cooperative_id": graph.cooperative.cooperative_id,
@@ -196,7 +190,6 @@ def make_produce_record(graph: SimpleNamespace, **overrides) -> ProduceRecord:
 
 
 def produce_record_payload(graph: SimpleNamespace, **overrides) -> dict:
-    """A JSON body accepted by POST /produce-records."""
     payload = {
         "cooperative_id": str(graph.cooperative.cooperative_id),
         "produce_price_id": str(graph.price.produce_price_id),
@@ -214,7 +207,6 @@ def produce_record_payload(graph: SimpleNamespace, **overrides) -> dict:
 
 @pytest.fixture()
 def api_client(db_session):
-    """TestClient whose get_db dependency serves the in-memory test session."""
     from routers.produce_record import router
 
     app = FastAPI()

@@ -191,7 +191,6 @@ def test_service_create_persists_valid_record(service, produce_graph):
     assert record.produce_record_id is not None
     assert record.farmer_id == produce_graph.farmer.user_id
     assert record.recorded_at is not None
-    # 75.5 kg x 350.00 per kg, calculated by the backend.
     assert record.amount == Decimal("26425.00")
 
 
