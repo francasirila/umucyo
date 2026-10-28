@@ -73,3 +73,14 @@ class TaskStatus(str, Enum):
     in_progress = "in_progress"
     completed = "completed"
     cancelled = "cancelled"
+
+
+class UserRole(str, Enum):
+    admin = "admin"
+    agent = "agent"
+    farmer = "farmer"
+
+
+class IssueCategory(str, Enum):
+    financial = "financial"
+    non_financial = "non_financial"

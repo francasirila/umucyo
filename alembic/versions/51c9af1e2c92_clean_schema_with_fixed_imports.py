@@ -1,8 +1,8 @@
-"""clean schema for sqlite and postgres
+"""clean schema with fixed imports
 
-Revision ID: 25c9fb7bca93
+Revision ID: 51c9af1e2c92
 Revises:
-Create Date: 2026-10-27 17:35:45.622943
+Create Date: 2026-10-28 08:07:20.618930
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "25c9fb7bca93"
+revision: str = "51c9af1e2c92"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -57,7 +57,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "cooperative_user",
-        sa.Column("cooperative_user_id", sa.UUID(), nullable=False),
+        sa.Column("cooperative_user_id", sa.UUID(), nullable=True),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("password_hash", sa.String(length=255), nullable=False),
         sa.Column("email", sa.String(length=150), nullable=False),
@@ -70,7 +70,7 @@ def upgrade() -> None:
             ["user_id"],
             ["users.user_id"],
         ),
-        sa.PrimaryKeyConstraint("cooperative_user_id", "user_id"),
+        sa.PrimaryKeyConstraint("user_id"),
     )
     op.create_table(
         "agent_assignment",
@@ -97,7 +97,7 @@ def upgrade() -> None:
     op.create_table(
         "audit_log",
         sa.Column("audit_log_id", sa.UUID(), nullable=False),
-        sa.Column("user_id", sa.UUID(), nullable=True),
+        sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("action", sa.String(length=50), nullable=False),
         sa.Column("entity_type", sa.String(length=100), nullable=False),
         sa.Column("entity_id", sa.UUID(), nullable=False),
@@ -112,7 +112,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "farmer",
-        sa.Column("farmer_id", sa.UUID(), nullable=True),
+        sa.Column("farmer_id", sa.UUID(), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("collection_point_id", sa.UUID(), nullable=False),
         sa.Column("registered_by_user_id", sa.UUID(), nullable=False),
@@ -129,7 +129,8 @@ def upgrade() -> None:
             ["user_id"],
             ["users.user_id"],
         ),
-        sa.PrimaryKeyConstraint("user_id"),
+        sa.PrimaryKeyConstraint("user_id", "registered_by_user_id"),
+        sa.UniqueConstraint("farmer_id"),
     )
     op.create_table(
         "produce_price",
@@ -203,56 +204,18 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("message_id"),
     )
     op.create_table(
-        "payment_transaction",
-        sa.Column("payment_transaction_id", sa.UUID(), nullable=False),
-        sa.Column("farmer_id", sa.UUID(), nullable=False),
-        sa.Column("user_id", sa.UUID(), nullable=False),
-        sa.Column("produce_price_id", sa.UUID(), nullable=False),
-        sa.Column("provider", sa.String(length=50), nullable=False),
-        sa.Column("period_start", sa.Date(), nullable=False),
-        sa.Column("period_end", sa.Date(), nullable=False),
-        sa.Column("quantity", sa.Numeric(precision=10, scale=3), nullable=False),
-        sa.Column("amount", sa.Numeric(precision=12, scale=2), nullable=False),
-        sa.Column("transaction_reference", sa.String(length=150), nullable=False),
-        sa.Column("failure_reason", sa.Text(), nullable=True),
-        sa.Column("status", sa.Enum("pending", "paid", "failed", name="payment_status"), nullable=False),
-        sa.Column("approved_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("approved_by", sa.UUID(), nullable=True),
-        sa.Column("payment_date", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["approved_by"],
-            ["cooperative_user.user_id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["farmer_id"],
-            ["farmer.user_id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["produce_price_id"],
-            ["produce_price.produce_price_id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["user_id"],
-            ["cooperative_user.user_id"],
-        ),
-        sa.PrimaryKeyConstraint("payment_transaction_id"),
-    )
-    op.create_table(
         "produce_record",
-        sa.Column("produce_record_id", sa.UUID(), nullable=False),
-        sa.Column("cooperative_id", sa.UUID(), nullable=False),
-        sa.Column("produce_price_id", sa.UUID(), nullable=False),
-        sa.Column("farmer_id", sa.UUID(), nullable=False),
-        sa.Column("device_id", sa.UUID(), nullable=False),
-        sa.Column("payment_transaction_id", sa.UUID(), nullable=True),
-        sa.Column("collection_point_id", sa.UUID(), nullable=False),
+        sa.Column("produce_record_id", sa.Uuid(), nullable=False),
+        sa.Column("cooperative_id", sa.Uuid(), nullable=False),
+        sa.Column("produce_price_id", sa.Uuid(), nullable=False),
+        sa.Column("farmer_id", sa.Uuid(), nullable=False),
+        sa.Column("device_id", sa.Uuid(), nullable=False),
+        sa.Column("collection_point_id", sa.Uuid(), nullable=False),
         sa.Column(
             "delivery_status", sa.Enum("accepted", "rejected", "partially_accepted", name="delivery_status"), nullable=False
         ),
-        sa.Column("user_id", sa.UUID(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("gross_weight_kg", sa.Numeric(precision=10, scale=3), nullable=False),
-        sa.Column("rejected_weight_kg", sa.Numeric(precision=10, scale=3), nullable=False),
-        sa.Column("accepted_weight_kg", sa.Numeric(precision=10, scale=3), nullable=False),
         sa.Column("agent_notes", sa.Text(), nullable=False),
         sa.Column("amount", sa.Numeric(precision=12, scale=2), nullable=False),
         sa.Column("recorded_at", sa.DateTime(timezone=True), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),
@@ -273,10 +236,6 @@ def upgrade() -> None:
             ["farmer.user_id"],
         ),
         sa.ForeignKeyConstraint(
-            ["payment_transaction_id"],
-            ["payment_transaction.payment_transaction_id"],
-        ),
-        sa.ForeignKeyConstraint(
             ["produce_price_id"],
             ["produce_price.produce_price_id"],
         ),
@@ -285,6 +244,46 @@ def upgrade() -> None:
             ["cooperative_user.user_id"],
         ),
         sa.PrimaryKeyConstraint("produce_record_id"),
+    )
+    op.create_table(
+        "payment_transaction",
+        sa.Column("payment_transaction_id", sa.Uuid(), nullable=False),
+        sa.Column("farmer_id", sa.Uuid(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
+        sa.Column("produce_price_id", sa.Uuid(), nullable=False),
+        sa.Column("produce_record_id", sa.Uuid(), nullable=False),
+        sa.Column("provider", sa.String(length=50), nullable=False),
+        sa.Column("period_start", sa.Date(), nullable=False),
+        sa.Column("period_end", sa.Date(), nullable=False),
+        sa.Column("quantity", sa.Numeric(precision=10, scale=3), nullable=False),
+        sa.Column("amount", sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column("transaction_reference", sa.String(length=150), nullable=False),
+        sa.Column("failure_reason", sa.Text(), nullable=True),
+        sa.Column("status", sa.Enum("pending", "paid", "failed", name="payment_status"), nullable=False),
+        sa.Column("approved_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("approved_by", sa.Uuid(), nullable=True),
+        sa.Column("payment_date", sa.DateTime(timezone=True), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["approved_by"],
+            ["cooperative_user.user_id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["farmer_id"],
+            ["farmer.user_id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["produce_price_id"],
+            ["produce_price.produce_price_id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["produce_record_id"],
+            ["produce_record.produce_record_id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["cooperative_user.user_id"],
+        ),
+        sa.PrimaryKeyConstraint("payment_transaction_id"),
     )
     op.create_table(
         "task",
@@ -327,8 +326,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table("task")
-    op.drop_table("produce_record")
     op.drop_table("payment_transaction")
+    op.drop_table("produce_record")
     op.drop_table("message_log")
     op.drop_table("weighing_device")
     op.drop_table("produce_price")

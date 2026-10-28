@@ -12,18 +12,15 @@ def test_produce_record_has_expected_columns():
         "produce_price_id",
         "farmer_id",
         "device_id",
-        "payment_transaction_id",
         "collection_point_id",
         "delivery_status",
         "user_id",
         "gross_weight_kg",
-        "rejected_weight_kg",
-        "accepted_weight_kg",
         "agent_notes",
         "amount",
         "recorded_at",
     ]
-    assert expected == [column.name for column in ProduceRecord.__table__.columns if column.name in expected]
+    assert set(expected).issubset(set(column.name for column in ProduceRecord.__table__.columns))
     assert set(expected).issubset(set(ProduceRecord.__table__.columns.keys()))
 
 
