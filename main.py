@@ -13,5 +13,4 @@ app.include_router(produce_record_router)
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    """Let deployment verification confirm that the API is responding."""
     return {"status": "ok"}

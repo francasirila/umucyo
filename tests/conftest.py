@@ -47,8 +47,6 @@ def db_session(engine):
         session.close()
 
 
-
-
 def _make_cooperative(db_session, **overrides) -> Cooperative:
     cooperative = Cooperative(
         **{
@@ -207,7 +205,6 @@ def produce_record_payload(graph: SimpleNamespace, **overrides) -> dict:
 
 @pytest.fixture()
 def api_client(db_session):
-    from routers.produce_record import router
 
     app = FastAPI()
     app.include_router(router)

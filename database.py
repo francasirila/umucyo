@@ -18,7 +18,6 @@ Base = declarative_base()
 
 
 def get_db():
-    """Yield a request-scoped database session, closing it afterwards."""
     db = SessionLocal()
     try:
         yield db
