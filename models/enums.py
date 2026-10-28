@@ -29,31 +29,6 @@ class PaymentStatus(str, Enum):
     failed = "failed"
 
 
-class MessageDirection(str, Enum):
-    inbound = "inbound"
-    outbound = "outbound"
-
-
-class MessageChannel(str, Enum):
-    SMS = "SMS"
-    USSD = "USSD"
-
-
-class MessageType(str, Enum):
-    report = "report"
-    question = "question"
-    weighing_notice = "weighing_notice"
-    price_change = "price_change"
-    payment_notice = "payment_notice"
-    response = "response"
-    other = "other"
-
-
-class MessageCategory(str, Enum):
-    financial = "financial"
-    non_financial = "non_financial"
-
-
 class MessageStatus(str, Enum):
     received = "received"
     queued = "queued"

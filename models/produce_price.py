@@ -17,7 +17,7 @@ class ProducePrice(Base):
     created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("cooperative_user.user_id"), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    cooperative = relationship("Cooperative", back_populates="produce_prices")
-    created_by = relationship("CooperativeUser", back_populates="created_prices")
+    cooperative = relationship("Cooperative", back_populates="produce_price")
+    created_by = relationship("CooperativeUser", back_populates="produce_price")
     produce_records = relationship("ProduceRecord", back_populates="produce_price")
     payment_transactions = relationship("PaymentTransaction", back_populates="produce_price")

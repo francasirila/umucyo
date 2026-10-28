@@ -8,7 +8,6 @@ from models.weighing_device import WeighingDevice
 from models.produce_price import ProducePrice
 from models.payment_transaction import PaymentTransaction
 from models.produce_record import ProduceRecord
-from models.message_log import MessageLog
 from models.task import Task
 from models.audit_log import AuditLog
 
@@ -23,7 +22,6 @@ __all__ = [
     "ProducePrice",
     "PaymentTransaction",
     "ProduceRecord",
-    "MessageLog",
     "Task",
     "AuditLog",
 ]

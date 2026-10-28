@@ -26,22 +26,21 @@ class CooperativeUser(User):
         foreign_keys="AgentAssignment.assigned_by_user_id",
         back_populates="assigned_by",
     )
-    produce_records = relationship("ProduceRecord", back_populates="agent")
-    created_prices = relationship("ProducePrice", back_populates="created_by")
+    produce_records = relationship("ProduceRecord", back_populates="cooperative_user")
+    created_prices = relationship("ProducePrice", back_populates="cooperative_user")
     initiated_payments = relationship(
         "PaymentTransaction",
         foreign_keys="PaymentTransaction.user_id",
-        back_populates="initiated_by",
+        back_populates="cooperative_user",
     )
     approved_payments = relationship(
         "PaymentTransaction",
         foreign_keys="PaymentTransaction.approved_by",
-        back_populates="approved_by_user",
+        back_populates="cooperative_user",
     )
-    reviewed_messages = relationship("MessageLog", back_populates="reviewer")
-    created_tasks = relationship("Task", foreign_keys="Task.created_by_user_id", back_populates="created_by")
-    assigned_tasks = relationship("Task", foreign_keys="Task.assigned_to_user_id", back_populates="assigned_to")
-    audit_events = relationship("AuditLog", back_populates="user")
+    created_tasks = relationship("Task", foreign_keys="Task.created_by_user_id", back_populates="cooperative_user")
+    assigned_tasks = relationship("Task", foreign_keys="Task.assigned_to_user_id", back_populates="cooperative_user")
+    audit_events = relationship("AuditLog", back_populates="cooperative_user")
     user = relationship(
         "User",
         back_populates="cooperative_user",

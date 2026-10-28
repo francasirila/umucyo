@@ -12,8 +12,6 @@ def test_payment_transaction_has_expected_columns():
         "user_id",
         "produce_price_id",
         "provider",
-        "period_start",
-        "period_end",
         "quantity",
         "amount",
         "transaction_reference",

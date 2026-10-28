@@ -17,4 +17,4 @@ class AuditLog(Base):
     new_values = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    user = relationship("CooperativeUser", back_populates="audit_events")
+    user = relationship("CooperativeUser", back_populates="audit_log")

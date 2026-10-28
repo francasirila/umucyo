@@ -12,7 +12,6 @@ def test_task_has_expected_columns():
         "created_by_user_id",
         "assigned_to_user_id",
         "collection_point_id",
-        "message_id",
         "description",
         "priority",
         "created_at",
