@@ -28,4 +28,4 @@ class PaymentTransaction(Base):
     initiated_by = relationship("CooperativeUser", foreign_keys=[user_id], back_populates="initiated_payments")
     approved_by_user = relationship("CooperativeUser", foreign_keys=[approved_by], back_populates="approved_payments")
     produce_price = relationship("ProducePrice", back_populates="payment_transactions")
-    produce_records = relationship("ProduceRecord", back_populates="payment_transaction")
+    produce_record = relationship("ProduceRecord", back_populates="payment_transactions")
