@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -18,7 +18,7 @@ def get_produce_record_service(db: Session = Depends(get_db)) -> ProduceRecordSe
     return ProduceRecordService(db)
 
 
-@router.post("", response_model=ProduceRecordResponse, status_code=status.HTTP_201_CREATED, summary="Record a produce delivery")
+@router.post("", response_model=ProduceRecordResponse, status_code=status.HTTP_201_CREATED)
 def create_produce_record(
     payload: ProduceRecordCreate,
     service: ProduceRecordService = Depends(get_produce_record_service),
@@ -26,17 +26,17 @@ def create_produce_record(
     return service.create_produce_record(payload)
 
 
-@router.get("", response_model=list[ProduceRecordResponse], summary="List produce records")
+@router.get("", response_model=list[ProduceRecordResponse])
 def list_produce_records(
-    cooperative_id: UUID | None = Query(default=None, description="Filter by cooperative"),
-    farmer_id: UUID | None = Query(default=None, description="Filter by farmer"),
-    collection_point_id: UUID | None = Query(default=None, description="Filter by collection point"),
-    device_id: UUID | None = Query(default=None, description="Filter by weighing device"),
-    delivery_status: DeliveryStatus | None = Query(default=None, description="Filter by delivery status"),
-    recorded_from: datetime | None = Query(default=None, description="Only records recorded at or after this time"),
-    recorded_to: datetime | None = Query(default=None, description="Only records recorded at or before this time"),
-    skip: int = Query(default=0, ge=0, description="Number of records to skip"),
-    limit: int = Query(default=100, ge=1, le=100, description="Maximum number of records to return"),
+    cooperative_id: UUID | None = None,
+    farmer_id: UUID | None = None,
+    collection_point_id: UUID | None = None,
+    device_id: UUID | None = None,
+    delivery_status: DeliveryStatus | None = None,
+    recorded_from: datetime | None = None,
+    recorded_to: datetime | None = None,
+    skip: int = 0,
+    limit: int = 100,
     service: ProduceRecordService = Depends(get_produce_record_service),
 ) -> list[ProduceRecordResponse]:
     return service.list_produce_records(
@@ -52,7 +52,7 @@ def list_produce_records(
     )
 
 
-@router.get("/{produce_record_id}", response_model=ProduceRecordResponse, summary="Get a produce record")
+@router.get("/{produce_record_id}", response_model=ProduceRecordResponse)
 def get_produce_record(
     produce_record_id: UUID,
     service: ProduceRecordService = Depends(get_produce_record_service),
@@ -60,7 +60,7 @@ def get_produce_record(
     return service.get_produce_record(produce_record_id)
 
 
-@router.patch("/{produce_record_id}", response_model=ProduceRecordResponse, summary="Update a produce record")
+@router.patch("/{produce_record_id}", response_model=ProduceRecordResponse)
 def update_produce_record(
     produce_record_id: UUID,
     payload: ProduceRecordUpdate,
@@ -69,7 +69,7 @@ def update_produce_record(
     return service.update_produce_record(produce_record_id, payload)
 
 
-@router.delete("/{produce_record_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a produce record")
+@router.delete("/{produce_record_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_produce_record(
     produce_record_id: UUID,
     service: ProduceRecordService = Depends(get_produce_record_service),
