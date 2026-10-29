@@ -14,7 +14,7 @@ class CooperativeUser(User):
     password_hash = Column(String(255), nullable=False)
     email = Column(String(150), nullable=False)
     cooperative_id = Column(UUID(as_uuid=True), ForeignKey("cooperative.cooperative_id"), nullable=False)
-    cooperative = relationship("Cooperative", back_populates="cooperative")
+    cooperative = relationship("Cooperative", back_populates="users")
 
     assignments = relationship(
         "AgentAssignment",
@@ -26,21 +26,21 @@ class CooperativeUser(User):
         foreign_keys="AgentAssignment.assigned_by_user_id",
         back_populates="assigned_by",
     )
-    produce_records = relationship("ProduceRecord", back_populates="cooperative_user")
-    created_prices = relationship("ProducePrice", back_populates="cooperative_user")
+    produce_records = relationship("ProduceRecord", back_populates="agent")
+    created_prices = relationship("ProducePrice", back_populates="created_by")
     initiated_payments = relationship(
         "PaymentTransaction",
         foreign_keys="PaymentTransaction.user_id",
-        back_populates="cooperative_user",
+        back_populates="initiated_by",
     )
     approved_payments = relationship(
         "PaymentTransaction",
         foreign_keys="PaymentTransaction.approved_by",
-        back_populates="cooperative_user",
+        back_populates="approved_by_user",
     )
-    created_tasks = relationship("Task", foreign_keys="Task.created_by_user_id", back_populates="cooperative_user")
-    assigned_tasks = relationship("Task", foreign_keys="Task.assigned_to_user_id", back_populates="cooperative_user")
-    audit_events = relationship("AuditLog", back_populates="cooperative_user")
+    created_tasks = relationship("Task", foreign_keys="Task.created_by_user_id", back_populates="created_by")
+    assigned_tasks = relationship("Task", foreign_keys="Task.assigned_to_user_id", back_populates="assigned_to")
+    audit_events = relationship("AuditLog", back_populates="user")
     user = relationship(
         "User",
         back_populates="cooperative_user",

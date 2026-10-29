@@ -17,7 +17,7 @@ class Cooperative(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     status = Column(Enum(CooperativeStatus, name="cooperative_status"), nullable=False, default=CooperativeStatus.active)
 
-    users = relationship("User", back_populates="cooperative")
+    users = relationship("CooperativeUser", back_populates="cooperative")
     collection_points = relationship("CollectionPoint", back_populates="cooperative")
     produce_prices = relationship("ProducePrice", back_populates="cooperative")
     produce_records = relationship("ProduceRecord", back_populates="cooperative")
