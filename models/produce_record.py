@@ -27,4 +27,5 @@ class ProduceRecord(Base):
     farmer = relationship("Farmer", back_populates="produce_records")
     device = relationship("WeighingDevice", back_populates="produce_records")
     collection_point = relationship("CollectionPoint", back_populates="produce_records")
-    agent = relationship("CooperativeUser", back_populates="produce_records")
+    cooperative_user = relationship("CooperativeUser", back_populates="produce_records")
+    payment_transactions = relationship("PaymentTransaction", back_populates="produce_record")

@@ -1,14 +1,12 @@
 import sys
 import os
 from logging.config import fileConfig
-
+from database import Base, DATABASE_URL
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from database import Base, SQLALCHEMY_DATABASE_URL
-import models  # noqa: F401
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -19,7 +17,7 @@ def compile_uuid_sqlite(type_, compiler, **kw):
 
 
 config = context.config
-config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

@@ -16,5 +16,5 @@ class AgentAssignment(Base):
     ended_at = Column(DateTime(timezone=True), nullable=True)
 
     agent = relationship("CooperativeUser", foreign_keys=[user_id], back_populates="agent_assignment")
-    assigned_by = relationship("CooperativeUser", foreign_keys=[assigned_by_user_id], back_populates="agent_assignment")
-    collection_point = relationship("CollectionPoint", back_populates="agent_assignment")
+    assigned_by = relationship("CooperativeUser", foreign_keys=[assigned_by_user_id], back_populates="assigned_by_assignments")
+    collection_point = relationship("CollectionPoint", back_populates="assignments")

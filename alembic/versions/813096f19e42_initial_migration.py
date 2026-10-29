@@ -1,8 +1,8 @@
-"""true_initial_baseline
+"""initial_migration
 
-Revision ID: 78973802deaf
+Revision ID: 813096f19e42
 Revises:
-Create Date: 2026-10-28 11:54:18.474805
+Create Date: 2026-10-29 08:18:21.754917
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "78973802deaf"
+revision: str = "813096f19e42"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,7 +25,6 @@ def upgrade() -> None:
         "cooperative",
         sa.Column("cooperative_id", sa.UUID(), nullable=False),
         sa.Column("cooperative_name", sa.String(length=150), nullable=False),
-        sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("phone_number", sa.String(length=20), nullable=True),
         sa.Column("email", sa.String(length=150), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
@@ -38,8 +37,8 @@ def upgrade() -> None:
         sa.Column("first_name", sa.String(length=100), nullable=False),
         sa.Column("last_name", sa.String(length=100), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("status", sa.Enum("active", "inactive", name="account_status"), nullable=False),
-        sa.Column("user_type", sa.Enum("farmer", "cooperative_admin", "cooperative_agent", name="user_type"), nullable=False),
+        sa.Column("status", sa.Enum("active", "inactive", "pending", name="account_status"), nullable=False),
+        sa.Column("user_type", sa.Enum("admin", "agent", "farmer", name="user_role"), nullable=False),
         sa.PrimaryKeyConstraint("user_id"),
     )
     op.create_table(
@@ -47,7 +46,7 @@ def upgrade() -> None:
         sa.Column("collection_point_id", sa.UUID(), nullable=False),
         sa.Column("cooperative_id", sa.UUID(), nullable=False),
         sa.Column("collection_name", sa.String(length=100), nullable=False),
-        sa.Column("status", sa.Enum("active", "inactive", name="collection_point_status"), nullable=False),
+        sa.Column("status", sa.Enum("active", "inactive", "pending", name="collection_point_status"), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
             ["cooperative_id"],
@@ -56,21 +55,80 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("collection_point_id"),
     )
     op.create_table(
+        "login_otp",
+        sa.Column("otp_id", sa.Uuid(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
+        sa.Column("otp_hash", sa.String(length=64), nullable=False),
+        sa.Column("attempts", sa.Integer(), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("consumed_at", sa.DateTime(timezone=True), nullable=True),
+        sa.ForeignKeyConstraint(["user_id"], ["users.user_id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("otp_id"),
+    )
+    op.create_index(op.f("ix_login_otp_user_id"), "login_otp", ["user_id"], unique=False)
+    op.create_table(
         "cooperative_user",
         sa.Column("cooperative_user_id", sa.UUID(), nullable=True),
         sa.Column("user_id", sa.UUID(), nullable=False),
-        sa.Column("password_hash", sa.String(length=255), nullable=False),
+        sa.Column("password_hash", sa.String(length=255), nullable=True),
         sa.Column("email", sa.String(length=150), nullable=False),
+        sa.Column("email_verified_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("cooperative_id", sa.UUID(), nullable=False),
+        sa.Column("collection_point_id", sa.UUID(), nullable=True),
+        sa.Column("registered_by_user_id", sa.UUID(), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["collection_point_id"],
+            ["collection_point.collection_point_id"],
+        ),
         sa.ForeignKeyConstraint(
             ["cooperative_id"],
             ["cooperative.cooperative_id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["registered_by_user_id"],
+            ["users.user_id"],
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.user_id"],
         ),
         sa.PrimaryKeyConstraint("user_id"),
+    )
+    op.create_table(
+        "farmer",
+        sa.Column("farmer_id", sa.UUID(), nullable=False),
+        sa.Column("user_id", sa.UUID(), nullable=False),
+        sa.Column("collection_point_id", sa.UUID(), nullable=False),
+        sa.Column("registered_by_user_id", sa.UUID(), nullable=False),
+        sa.Column("phone_number", sa.String(length=20), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["collection_point_id"],
+            ["collection_point.collection_point_id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["registered_by_user_id"],
+            ["users.user_id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["users.user_id"],
+        ),
+        sa.PrimaryKeyConstraint("user_id"),
+        sa.UniqueConstraint("farmer_id"),
+    )
+    op.create_table(
+        "weighing_device",
+        sa.Column("device_id", sa.UUID(), nullable=False),
+        sa.Column("collection_point_id", sa.UUID(), nullable=False),
+        sa.Column("serial_number", sa.String(length=100), nullable=False),
+        sa.Column("status", sa.Enum("active", "inactive", "pending", name="weighing_device_status"), nullable=False),
+        sa.Column("registered_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["collection_point_id"],
+            ["collection_point.collection_point_id"],
+        ),
+        sa.PrimaryKeyConstraint("device_id"),
     )
     op.create_table(
         "agent_assignment",
@@ -95,6 +153,19 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("assignment_id"),
     )
     op.create_table(
+        "agent_invitation",
+        sa.Column("invitation_id", sa.Uuid(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
+        sa.Column("token_hash", sa.String(length=64), nullable=False),
+        sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("accepted_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(["user_id"], ["cooperative_user.user_id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("invitation_id"),
+        sa.UniqueConstraint("token_hash"),
+    )
+    op.create_index(op.f("ix_agent_invitation_user_id"), "agent_invitation", ["user_id"], unique=False)
+    op.create_table(
         "audit_log",
         sa.Column("audit_log_id", sa.UUID(), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=False),
@@ -110,22 +181,6 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("audit_log_id"),
     )
-
-    op.create_table(
-        "farmer",
-        sa.Column("farmer_id", sa.UUID(), nullable=False),
-        sa.Column("user_id", sa.UUID(), nullable=False),
-        sa.Column("collection_point_id", sa.UUID(), nullable=False),
-        sa.Column("registered_by_user_id", sa.UUID(), nullable=False),
-        sa.Column("phone_number", sa.String(length=20), nullable=False),
-        sa.ForeignKeyConstraint(["collection_point_id"], ["collection_point.collection_point_id"]),
-        sa.ForeignKeyConstraint(["registered_by_user_id"], ["users.user_id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["users.user_id"]),
-        sa.PrimaryKeyConstraint("user_id", "registered_by_user_id"),
-        sa.UniqueConstraint("farmer_id"),
-        sa.UniqueConstraint("user_id", name="uq_farmer_user_id"),
-    )
-
     op.create_table(
         "produce_price",
         sa.Column("produce_price_id", sa.UUID(), nullable=False),
@@ -175,19 +230,6 @@ def upgrade() -> None:
             ["cooperative_user.user_id"],
         ),
         sa.PrimaryKeyConstraint("task_id"),
-    )
-    op.create_table(
-        "weighing_device",
-        sa.Column("device_id", sa.UUID(), nullable=False),
-        sa.Column("collection_point_id", sa.UUID(), nullable=False),
-        sa.Column("serial_number", sa.String(length=100), nullable=False),
-        sa.Column("status", sa.Enum("active", "inactive", name="weighing_device_status"), nullable=False),
-        sa.Column("registered_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["collection_point_id"],
-            ["collection_point.collection_point_id"],
-        ),
-        sa.PrimaryKeyConstraint("device_id"),
     )
     op.create_table(
         "produce_record",
@@ -276,13 +318,17 @@ def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table("payment_transaction")
     op.drop_table("produce_record")
-    op.drop_table("weighing_device")
     op.drop_table("task")
     op.drop_table("produce_price")
-    op.drop_table("farmer")
     op.drop_table("audit_log")
+    op.drop_index(op.f("ix_agent_invitation_user_id"), table_name="agent_invitation")
+    op.drop_table("agent_invitation")
     op.drop_table("agent_assignment")
+    op.drop_table("weighing_device")
+    op.drop_table("farmer")
     op.drop_table("cooperative_user")
+    op.drop_index(op.f("ix_login_otp_user_id"), table_name="login_otp")
+    op.drop_table("login_otp")
     op.drop_table("collection_point")
     op.drop_table("users")
     op.drop_table("cooperative")

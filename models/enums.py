@@ -4,17 +4,12 @@ from enum import Enum
 class AccountStatus(str, Enum):
     active = "active"
     inactive = "inactive"
+    pending = "pending"
 
 
 class CooperativeStatus(str, Enum):
     active = "active"
     inactive = "inactive"
-
-
-class UserType(str, Enum):
-    farmer = "farmer"
-    cooperative_admin = "admin"
-    cooperative_agent = "agent"
 
 
 class DeliveryStatus(str, Enum):
