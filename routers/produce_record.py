@@ -1,4 +1,3 @@
-"""HTTP endpoints for the produce_record resource."""
 
 from datetime import datetime
 from uuid import UUID
