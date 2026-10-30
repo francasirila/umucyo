@@ -1,5 +1,3 @@
-"""All USSD tests: menus, language, payment history, reporting, robustness."""
-
 import logging
 import string
 import sys
@@ -24,7 +22,6 @@ from models.cooperative import Cooperative
 from models.cooperative_user import CooperativeUser
 from models.enums import AccountStatus, CooperativeStatus, DeliveryStatus, PaymentStatus, UserType
 from models.farmer import Farmer
-from models.payment_report import PaymentReport
 from models.payment_transaction import PaymentTransaction
 from models.produce_price import ProducePrice
 from models.produce_record import ProduceRecord
@@ -45,13 +42,10 @@ from services.translations import (
 from services.ussd_service import UssdService
 
 FARMER_PHONE = "0788123456"
-
-
 FARMER_NO_PAYMENTS_PHONE = "0788999888"
 
 
 def month_start(offset: int) -> date:
-    """First day of the month `offset` months ago (0 = this month)."""
     today = date.today()
     year, month = today.year, today.month - offset
     while month < 1:
@@ -62,14 +56,17 @@ def month_start(offset: int) -> date:
 
 @pytest.fixture(autouse=True)
 def no_real_sms_credentials(monkeypatch):
-    """Make sure no test can ever call the real Africa's Talking API by accident."""
     monkeypatch.delenv("AT_USERNAME", raising=False)
     monkeypatch.delenv("AT_API_KEY", raising=False)
 
 
 @pytest.fixture()
 def api_session_factory():
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     Base.metadata.create_all(bind=engine)
     yield sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     Base.metadata.drop_all(bind=engine)
@@ -85,8 +82,6 @@ def api_db(api_session_factory):
 
 @pytest.fixture()
 def api_client(api_session_factory):
-    """TestClient wired to the in-memory database. No lifespan, so the real database is never touched."""
-
     def override_get_db():
         session = api_session_factory()
         try:
@@ -101,7 +96,6 @@ def api_client(api_session_factory):
 
 @pytest.fixture()
 def seeded(api_db):
-    """Cooperative, point, agent, two farmers, and 3 months of payments for John."""
     ids = SimpleNamespace(
         coop=uuid.uuid4(),
         point=uuid.uuid4(),
@@ -198,7 +192,6 @@ def seeded(api_db):
     )
     db.flush()
 
-    # offset 0 = this month (paid), 1 = last month (unpaid), 2 = two months ago (paid)
     ids.paid_on = datetime.combine(date.today(), time(12, 0), tzinfo=timezone.utc)
     for offset, status in (
         (0, PaymentStatus.paid),
@@ -245,7 +238,6 @@ def seeded(api_db):
 
 @pytest.fixture()
 def outbox(monkeypatch):
-    """Replaces the SMS provider with a recorder. Each item is (phone_number, message)."""
     sent: list[tuple[str, str]] = []
 
     def fake_send(self, phone_number, message):
@@ -257,7 +249,6 @@ def outbox(monkeypatch):
 
 
 def make_fake_africastalking(status: str = "Success") -> types.ModuleType:
-    """A stand-in for the `africastalking` SDK. It records calls and never touches the network."""
     module = types.ModuleType("africastalking")
     module.calls = {"initialize": [], "send": []}
 
@@ -279,7 +270,6 @@ URL = "/api/v1/ussd/"
 
 
 def dial(client, text="", phone=FARMER_PHONE, lang="2"):
-    """Dials as an English speaker by default: the first input is the language (1 = Kinyarwanda, 2 = English)."""
     full = f"{lang}*{text}" if text else lang
     return client.post(
         URL,
@@ -593,8 +583,7 @@ def test_deep_and_odd_paths_after_choosing_a_language_never_break(api_client, se
 
 
 def dial_ussd_history_extra(client, text, phone=FARMER_NO_PAYMENTS_PHONE):
-    """Default caller is Jane, the farmer who has no payments in the seed data."""
-    return client.post(URL, data={"phoneNumber": phone, "text": f"2*{text}"}).text  # 2 = English
+    return client.post(URL, data={"phoneNumber": phone, "text": f"2*{text}"}).text
 
 
 def add_payment(
@@ -607,7 +596,6 @@ def add_payment(
     period_start=None,
     farmer_id=None,
 ):
-    """A payment for a delivery made on `period_start` (default: first day of the month)."""
     start = period_start or month_start(offset)
     qty = Decimal(str(quantity))
     delivered = datetime(start.year, start.month, start.day, 12, 0, tzinfo=timezone.utc)
@@ -704,7 +692,7 @@ def test_history_is_ordered_oldest_to_newest(api_client, api_db, seeded):
 
 
 def test_each_farmer_only_sees_their_own_payments(api_client, api_db, seeded):
-    add_payment(api_db, seeded, quantity="7", paid_on=at(5))  # Jane's
+    add_payment(api_db, seeded, quantity="7", paid_on=at(5))
     john = dial_ussd_history_extra(api_client, "1*1", phone=FARMER_PHONE)
     jane = dial_ussd_history_extra(api_client, "1*1")
     assert "Weight: 100.0 kg" in john and "7.0 kg" not in john
@@ -727,7 +715,6 @@ LIMIT = 182
 
 
 def dial_ussd_robustness(client, text="", phone=FARMER_PHONE, lang="2"):
-    """English by default (the first input is the language: 1 = Kinyarwanda, 2 = English)."""
     full = f"{lang}*{text}" if text else lang
     return client.post(URL, data={"phoneNumber": phone, "text": full})
 
@@ -869,7 +856,15 @@ def test_get_is_not_allowed(api_client, seeded):
 
 
 def test_extra_form_fields_are_ignored(api_client, seeded):
-    response = api_client.post(URL, data={"phoneNumber": FARMER_PHONE, "text": "", "networkCode": "63510", "foo": "bar"})
+    response = api_client.post(
+        URL,
+        data={
+            "phoneNumber": FARMER_PHONE,
+            "text": "",
+            "networkCode": "63510",
+            "foo": "bar",
+        },
+    )
     assert response.status_code == 200 and response.text.startswith("CON ")
 
 
@@ -992,14 +987,18 @@ def test_without_credentials_the_sdk_is_never_used(api_db, monkeypatch):
 
 
 def test_full_flow_report_confirmation_goes_out_through_africas_talking(api_client, seeded, monkeypatch):
-    """USSD report -> real SmsService -> fake Africa's Talking: one confirmation SMS to the farmer."""
     fake = use_credentials(monkeypatch)
-    response = api_client.post("/api/v1/ussd/", data={"phoneNumber": "+250788123456", "text": "2*2*2*1"})
+    response = api_client.post(
+        "/api/v1/ussd/",
+        data={"phoneNumber": "+250788123456", "text": "2*2*2*1"},
+    )
     assert response.text == "END Your report was sent successfully."
     assert [recipients for _, recipients in fake.calls["send"]] == [["+250788123456"]]
 
 
-def test_successful_report_is_saved_with_sms_confirmation(api_client, api_db, seeded, outbox):
+def test_successful_report_is_logged_and_farmer_receives_confirmation_sms(api_client, seeded, outbox, caplog):
+    caplog.set_level(logging.INFO)
+
     response = api_client.post(
         URL,
         data={
@@ -1012,25 +1011,20 @@ def test_successful_report_is_saved_with_sms_confirmation(api_client, api_db, se
 
     assert response.status_code == 200
     assert response.text == "END Your report was sent successfully."
-
-    api_db.expire_all()
-    reports = api_db.query(PaymentReport).all()
-
-    assert len(reports) == 1
-
-    report = reports[0]
-    assert report.farmer_id == seeded.farmer
-    assert report.cooperative_id == seeded.coop
-    assert report.report_type == "less_payment"
-    assert report.reported_month_start == month_start(1)
-    assert report.status == "pending"
-    assert report.confirmation_sms_sent is True
+    assert "LESS PAYMENT" in caplog.text
+    assert "John" in caplog.text
 
     assert len(outbox) == 1
-    assert outbox[0][0] == FARMER_PHONE
+    phone, message = outbox[0]
+
+    assert phone == FARMER_PHONE
+    assert message.startswith("Dear John, ")
+    assert "less payment" in message
 
 
-def test_report_is_saved_when_confirmation_sms_fails(api_client, api_db, seeded, monkeypatch):
+def test_report_is_logged_when_confirmation_sms_fails(api_client, seeded, monkeypatch, caplog):
+    caplog.set_level(logging.INFO)
+
     monkeypatch.setattr(
         SmsService,
         "send_custom_sms",
@@ -1050,14 +1044,8 @@ def test_report_is_saved_when_confirmation_sms_fails(api_client, api_db, seeded,
     assert response.status_code == 200
     assert response.text.startswith("END Sorry, we could not send your report")
 
-    api_db.expire_all()
-    reports = api_db.query(PaymentReport).all()
-
-    assert len(reports) == 1
-    assert reports[0].farmer_id == seeded.farmer
-    assert reports[0].report_type == "unpaid"
-    assert reports[0].reported_month_start == month_start(0)
-    assert reports[0].confirmation_sms_sent is False
+    assert "NOT PAID AT ALL" in caplog.text
+    assert "John" in caplog.text
 
 
 def test_health_check(api_client):

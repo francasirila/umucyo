@@ -11,8 +11,6 @@ from models.task import Task
 from models.user import User
 from models.weighing_device import WeighingDevice
 
-from .payment_report import PaymentReport
-
 __all__ = [
     "Cooperative",
     "User",
@@ -26,5 +24,4 @@ __all__ = [
     "ProduceRecord",
     "Task",
     "AuditLog",
-    "PaymentReport",
 ]
