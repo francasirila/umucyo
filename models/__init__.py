@@ -10,6 +10,7 @@ from models.payment_transaction import PaymentTransaction
 from models.produce_record import ProduceRecord
 from models.task import Task
 from models.audit_log import AuditLog
+from .payment_report import PaymentReport
 
 __all__ = [
     "Cooperative",
@@ -24,4 +25,5 @@ __all__ = [
     "ProduceRecord",
     "Task",
     "AuditLog",
+    "PaymentReport",
 ]

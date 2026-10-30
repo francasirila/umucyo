@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from routers.produce_record import router as produce_record_router
+from routers import ussd
 
 app = FastAPI(
     title="Umucyo",
@@ -9,6 +10,7 @@ app = FastAPI(
 )
 
 app.include_router(produce_record_router)
+app.include_router(ussd.router)
 
 
 @app.get("/health")
