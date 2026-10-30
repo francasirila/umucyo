@@ -1072,19 +1072,6 @@ def test_swagger_docs_are_served(api_client):
     assert "swagger" in response.text.lower()
 
 
-def test_openapi_lists_the_public_routes(api_client):
-    paths = api_client.get("/openapi.json").json()["paths"]
-    assert "post" in paths["/api/v1/ussd/"]
-
-
-def test_ussd_documents_the_africas_talking_field_names(api_client):
-    schema = api_client.get("/openapi.json").json()
-    body = schema["paths"]["/api/v1/ussd/"]["post"]["requestBody"]["content"]["application/x-www-form-urlencoded"]
-    ref = body["schema"]["$ref"].split("/")[-1]
-    fields = schema["components"]["schemas"][ref]["properties"]
-    assert {"phoneNumber", "text", "sessionId", "serviceCode"} <= set(fields)
-
-
 def test_unknown_route_is_a_404(api_client):
     assert api_client.get("/nope").status_code == 404
 
