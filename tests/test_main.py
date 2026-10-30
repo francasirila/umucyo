@@ -5,7 +5,7 @@ def test_root(client):
 
 
 def test_health(client):
-    assert client.get("/health").json() == {"status": "healthy"}
+    assert client.get("/health").json() == {"status": "ok"}
 
 
 def test_unknown_route_returns_404(client):

@@ -202,6 +202,7 @@ class UserService:
             phone_number=phone,
             collection_point_id=point.collection_point_id,
             registered_by_user_id=current_user.user_id,
+            farmer_id=__import__('uuid').uuid4(),
         )
 
         try:

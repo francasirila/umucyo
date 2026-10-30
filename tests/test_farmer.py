@@ -37,12 +37,12 @@ def test_farmer_remains_registered_if_sms_fails(client, auth_headers, make_point
 
 
 def test_farmer_registration_survives_sms_exception(client, auth_headers, make_point, monkeypatch):
-    from services import farmer_service
+    from services import user_service
 
     def boom(phone, message):
         raise RuntimeError("gateway down")
 
-    monkeypatch.setattr(farmer_service, "send_sms", boom)
+    monkeypatch.setattr(user_service, "send_sms", boom)
     point = make_point(auth_headers)
 
     response = client.post("/users/farmers", headers=auth_headers, json=farmer_payload(point["collection_point_id"]))

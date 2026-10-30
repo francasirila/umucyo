@@ -5,13 +5,12 @@ import json
 import secrets
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
-
 from fastapi import Depends, HTTPException
-from database import SessionLocal
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-
+from sqlalchemy.orm import Session
 from core.config import settings
 from core.utils import enum_value
+from database import get_db
 from models.enums import AccountStatus
 from models.user import User
 
@@ -109,6 +108,7 @@ def decode_access_token(token: str) -> dict:
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
 ) -> User:
     unauthorized = HTTPException(
         status_code=401,
@@ -119,25 +119,16 @@ def get_current_user(
     if credentials is None:
         raise unauthorized
 
-    db = SessionLocal()
-
     try:
         payload = decode_access_token(credentials.credentials)
         user = db.get(User, UUID(payload["sub"]))
-
-        if user is None or str(enum_value(user.role)) != payload.get("role"):
-            raise unauthorized
-
-        if user.status != AccountStatus.active:
-            raise HTTPException(status_code=403, detail="Account is inactive.")
-
-        return user
-
-    except HTTPException:
-        raise
-
     except Exception as exc:
         raise unauthorized from exc
 
-    finally:
-        db.close()
+    if user is None or str(enum_value(user.role)) != payload.get("role"):
+        raise unauthorized
+
+    if user.status != AccountStatus.active:
+        raise HTTPException(status_code=403, detail="Account is inactive.")
+
+    return user

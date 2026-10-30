@@ -22,6 +22,7 @@ from models.agent_invitation import AgentInvitation
 from models.weighing_device import WeighingDevice
 from models.produce_price import ProducePrice
 from models.payment_transaction import PaymentTransaction
+from models.produce_price import ProducePrice
 from models.produce_record import ProduceRecord
 from models.task import Task
 from models.audit_log import AuditLog
