@@ -8,8 +8,7 @@ from services.ussd_service import UssdService
 router = APIRouter(prefix="/api/v1/ussd", tags=["USSD"])
 
 
-@router.post("/", response_class=PlainTextResponse)
-@router.post("", response_class=PlainTextResponse, include_in_schema=False)
+@router.post("/", response_class=PlainTextResponse, include_in_schema=False)
 def ussd_callback(
     phoneNumber: str = Form(...),
     text: str = Form(""),
