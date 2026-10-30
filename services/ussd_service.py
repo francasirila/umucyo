@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 class UssdService:
-
     def __init__(self, db: Session):
         self.db = db
         self.sms_service = SmsService(db)
