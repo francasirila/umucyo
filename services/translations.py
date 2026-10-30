@@ -1,9 +1,3 @@
-"""All wording for the USSD screens and SMS, in Kinyarwanda (rw) and English (en).
-
-Every sentence lives here and nowhere else, so a Kinyarwanda speaker can review or correct the
-wording in this one file without touching any logic.
-"""
-
 from datetime import date
 
 DEFAULT_LANGUAGE = "en"
