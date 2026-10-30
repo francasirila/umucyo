@@ -24,11 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 class UssdService:
-    """USSD flow. The first screen picks the language, and every later input is sent after it.
-
-    Africa's Talking sends the whole path every time, for example "1*2*1":
-    1 = Kinyarwanda, then 2 = report a payment issue, then 1 = less payment.
-    """
 
     def __init__(self, db: Session):
         self.db = db
@@ -40,7 +35,6 @@ class UssdService:
 
     @staticmethod
     def _month_range(offset: int) -> tuple[date, date]:
-        """First day of the month `offset` months ago (0 = this month) and first day of the next month."""
         today = date.today()
         year, month = today.year, today.month - offset
         while month < 1:
@@ -58,7 +52,6 @@ class UssdService:
         return f"CON {title}\n" + "\n".join(lines)
 
     def _month_status(self, farmer: Farmer, offset: int):
-        """Returns None if no payments that month, else (weight_kg, is_paid, paid_on_date_or_None)."""
         start, end = self._month_range(offset)
         payments = (
             self.db.query(PaymentTransaction)
