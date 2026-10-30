@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class AccountStatus(str, Enum):
     active = "active"
     inactive = "inactive"
