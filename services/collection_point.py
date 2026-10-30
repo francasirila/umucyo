@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 
 from core.exceptions import ServiceError
 from core.utils import enum_value
-from database import commit_session
 from models.collection_point import CollectionPoint
 from models.enums import AccountStatus, UserRole
 from services.access import require_admin, require_staff, role_of
@@ -13,6 +12,14 @@ from services.audit_service import AuditService
 
 NAME_TOO_SHORT = "Collection point name must contain at least two non-space characters."
 NAME_EXISTS = "A collection point with this name already exists in this cooperative."
+
+
+def commit_session(db):
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
 
 class CollectionPointService:

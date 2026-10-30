@@ -9,7 +9,6 @@ from core.config import settings
 from core.exceptions import ServiceError
 from core.security import create_access_token, get_password_hash, verify_password
 from core.utils import ensure_aware, enum_value, utcnow
-from database import commit_session
 from models.agent_invitation import AgentInvitation
 from models.cooperative import Cooperative
 from models.cooperative_user import CooperativeAdmin, CooperativeAgent, CooperativeUser
@@ -23,6 +22,14 @@ MAX_OTP_ATTEMPTS = 5
 USER_MODELS = {UserRole.admin: CooperativeAdmin, UserRole.agent: CooperativeAgent}
 INVALID_INVITATION = "This invitation link is invalid or has expired."
 OTP_SEND_FAILED = "Unable to send the login verification code. Please try again."
+
+
+def commit_session(db):
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
 
 class AuthService:
@@ -236,7 +243,6 @@ class AuthService:
         return {"message": "Password set successfully. You can now sign in."}
 
     def logout(self, user):
-        """Tokens are stateless: the client discards the token. We only audit."""
         self.audit.record(user, "logout", "user", user.user_id)
         commit_session(self.db)
         return {"message": "Logged out successfully."}

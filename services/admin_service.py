@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 from core.exceptions import ServiceError
 from core.security import get_password_hash
-from database import commit_session
 from models.cooperative_user import CooperativeAdmin, CooperativeUser
 from models.enums import AccountStatus, UserRole
 from schemas.users import AdminCreate
@@ -40,6 +39,7 @@ class AdminService:
         try:
             self.db.add(user)
             self.db.flush()
+
             self.audit.record(
                 current_user,
                 "create_admin",
@@ -47,9 +47,16 @@ class AdminService:
                 user.user_id,
                 new_values={"email": email},
             )
-            commit_session(self.db)
+
+            self.db.commit()
             self.db.refresh(user)
             return user
+
         except IntegrityError as exc:
             self.db.rollback()
-            raise ServiceError(409, EMAIL_EXISTS) from exc
+            if "email" in str(exc.orig).lower():
+                raise ServiceError(409, EMAIL_EXISTS) from exc
+            raise
+        except Exception:
+            self.db.rollback()
+            raise

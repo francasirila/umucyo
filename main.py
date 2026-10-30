@@ -6,10 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from core.exceptions import ServiceError
 from routers.users import router as users_router
-from routers.agents import router as agents_router
 from routers.auth import router as auth_router
 from routers.collection_point import router as collection_point_router
-from routers.farmers import router as farmers_router
 
 
 load_dotenv()
@@ -43,8 +41,6 @@ async def service_error_handler(request: Request, exc: ServiceError):
 
 app.include_router(auth_router)
 app.include_router(users_router)
-app.include_router(agents_router)
-app.include_router(farmers_router)
 app.include_router(collection_point_router)
 
 

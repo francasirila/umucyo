@@ -5,7 +5,29 @@ from sqlalchemy.orm import Session
 
 from models.collection_point import CollectionPoint
 from models.enums import AccountStatus
-from database import add_record, delete_record, get_record, update_record
+
+
+def add_record(db, model, data: dict):
+    record = model(**data)
+    db.add(record)
+    db.flush()
+    return record
+
+
+def get_record(db, model, record_id):
+    return db.get(model, record_id)
+
+
+def update_record(db, record, data: dict):
+    for key, value in data.items():
+        setattr(record, key, value)
+    db.flush()
+    return record
+
+
+def delete_record(db, record):
+    db.delete(record)
+    db.flush()
 
 
 class CollectionPointRepository:
