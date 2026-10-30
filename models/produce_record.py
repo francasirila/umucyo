@@ -1,9 +1,7 @@
 import uuid
-
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-
 from database import Base
 from models.enums import DeliveryStatus
 

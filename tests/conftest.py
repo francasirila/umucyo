@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from routers.produce_record import router
 
 from database import Base, get_db
 from models import (
@@ -19,7 +20,6 @@ from models import (
     ProduceRecord,
     WeighingDevice,
 )
-from routers.produce_record import router
 
 
 @pytest.fixture()

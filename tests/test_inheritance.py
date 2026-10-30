@@ -1,6 +1,6 @@
+from models.user import User
 from models.cooperative_user import CooperativeUser
 from models.farmer import Farmer
-from models.user import User
 
 
 def test_agent_inherits_user():
