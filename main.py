@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from routers import ussd
+from routers.produce_price import router as produce_price_router
 from routers.weighing_device import router as weighing_device_router
 from routers.produce_record import router as produce_record_router
 
@@ -12,6 +13,7 @@ app = FastAPI(
 app.include_router(weighing_device_router)
 app.include_router(produce_record_router)
 app.include_router(ussd.router)
+app.include_router(produce_price_router)
 
 
 @app.get("/health")
