@@ -22,11 +22,9 @@ from services.user_service import UserService
 router = APIRouter(prefix="/users")
 
 
-
 @router.get("/me", response_model=CurrentUserResponse, tags=["Users"])
 def read_current_user(current_user: User = Depends(get_current_user)):
     return current_user
-
 
 
 @router.post(
@@ -41,7 +39,6 @@ def create_admin(
     db: Session = Depends(get_db),
 ):
     return AdminService(db).create_admin(current_user, payload)
-
 
 
 @router.post(
@@ -84,7 +81,6 @@ def update_agent(
     db: Session = Depends(get_db),
 ):
     return UserService(db).update_agent(current_user, agent_id, payload)
-
 
 
 @router.post(

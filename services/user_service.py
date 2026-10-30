@@ -35,7 +35,6 @@ class UserService:
         self.db = db
         self.audit = AuditService(db)
 
-
     def _commit(self) -> None:
         try:
             self.db.commit()
@@ -49,8 +48,7 @@ class UserService:
         invitation = AgentInvitation(
             user_id=user_id,
             token_hash=hashlib.sha256(raw_token.encode()).hexdigest(),
-            expires_at=datetime.now(timezone.utc)
-            + timedelta(hours=settings.invitation_expire_hours),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=settings.invitation_expire_hours),
         )
         return raw_token, invitation
 
@@ -64,14 +62,11 @@ class UserService:
             raise ServiceError(404, AGENT_NOT_FOUND)
         return agent
 
-
     def register_agent(self, current_user, payload: AgentCreate) -> dict:
         cooperative_id = require_admin(current_user)
         email = str(payload.email).strip().lower()
 
-        if self.db.scalar(
-            select(CooperativeUser.user_id).where(func.lower(CooperativeUser.email) == email)
-        ):
+        if self.db.scalar(select(CooperativeUser.user_id).where(func.lower(CooperativeUser.email) == email)):
             raise ServiceError(409, EMAIL_EXISTS)
 
         point = get_active_point(self.db, current_user, payload.collection_point_id)
@@ -115,9 +110,7 @@ class UserService:
             raise
 
         try:
-            send_invitation_email(
-                email, agent.first_name, self._invitation_link(raw_token), "invitation"
-            )
+            send_invitation_email(email, agent.first_name, self._invitation_link(raw_token), "invitation")
             invitation_sent = True
         except Exception:
             logger.exception("Agent invitation email failed")
@@ -126,8 +119,7 @@ class UserService:
         message = (
             "Agent registered. An invitation email was sent."
             if invitation_sent
-            else "Agent registered. Invitation email could not be sent; "
-            "configure email delivery and resend the invitation."
+            else "Agent registered. Invitation email could not be sent; configure email delivery and resend the invitation."
         )
         return {"message": message, "agent": agent, "invitation_sent": invitation_sent}
 
@@ -183,9 +175,7 @@ class UserService:
         self._commit()
 
         try:
-            send_invitation_email(
-                agent.email, agent.first_name, self._invitation_link(raw_token), "invitation"
-            )
+            send_invitation_email(agent.email, agent.first_name, self._invitation_link(raw_token), "invitation")
             sent = True
         except Exception:
             logger.exception("Agent invitation resend failed")
@@ -195,7 +185,6 @@ class UserService:
             "message": "Invitation re-sent." if sent else "Email could not be sent.",
             "invitation_sent": sent,
         }
-
 
     def register_farmer(self, current_user, payload: FarmerCreate) -> dict:
         require_staff(current_user)

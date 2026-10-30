@@ -9,7 +9,6 @@ from uuid import UUID
 from fastapi import Depends, HTTPException
 from database import SessionLocal
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.utils import enum_value
@@ -106,7 +105,8 @@ def decode_access_token(token: str) -> dict:
 
     except Exception as exc:
         raise ValueError("Invalid or expired token") from exc
-            
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> User:

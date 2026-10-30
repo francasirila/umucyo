@@ -21,10 +21,16 @@ class CooperativeUser(User):
     cooperative = relationship("Cooperative", back_populates="cooperative_users")
     collection_point = relationship("CollectionPoint", back_populates="cooperative_users", foreign_keys=[collection_point_id])
     agent_assignment = relationship("AgentAssignment", foreign_keys="AgentAssignment.user_id", back_populates="agent")
-    assigned_by_assignments = relationship("AgentAssignment", foreign_keys="AgentAssignment.assigned_by_user_id", back_populates="assigned_by")
+    assigned_by_assignments = relationship(
+        "AgentAssignment", foreign_keys="AgentAssignment.assigned_by_user_id", back_populates="assigned_by"
+    )
     created_prices = relationship("ProducePrice", back_populates="created_by")
-    initiated_payments = relationship("PaymentTransaction", foreign_keys="PaymentTransaction.user_id", back_populates="initiated_by")
-    approved_payments = relationship("PaymentTransaction", foreign_keys="PaymentTransaction.approved_by", back_populates="approved_by_user")
+    initiated_payments = relationship(
+        "PaymentTransaction", foreign_keys="PaymentTransaction.user_id", back_populates="initiated_by"
+    )
+    approved_payments = relationship(
+        "PaymentTransaction", foreign_keys="PaymentTransaction.approved_by", back_populates="approved_by_user"
+    )
     created_tasks = relationship("Task", foreign_keys="Task.created_by_user_id", back_populates="created_by")
     assigned_tasks = relationship("Task", foreign_keys="Task.assigned_to_user_id", back_populates="assigned_to")
     audit_log = relationship("AuditLog", back_populates="user")
