@@ -37,9 +37,7 @@ class SmsService:
             [_to_international(phone_number)],
         )
         recipients = response.get("SMSMessageData", {}).get("Recipients", [])
-        ok = bool(recipients) and all(
-            recipient.get("status") == "Success" for recipient in recipients
-        )
+        ok = bool(recipients) and all(recipient.get("status") == "Success" for recipient in recipients)
 
         if ok:
             logger.info("SMS sent to %s: %s", phone_number, message)

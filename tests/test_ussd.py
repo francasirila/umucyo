@@ -68,9 +68,7 @@ def no_real_sms_credentials(monkeypatch):
 
 @pytest.fixture()
 def api_session_factory():
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(bind=engine)
     yield sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     Base.metadata.drop_all(bind=engine)
@@ -269,11 +267,7 @@ def make_fake_africastalking(status: str = "Success") -> types.ModuleType:
         @staticmethod
         def send(message, recipients):
             module.calls["send"].append((message, recipients))
-            return {
-                "SMSMessageData": {
-                    "Recipients": [{"number": r, "status": status} for r in recipients]
-                }
-            }
+            return {"SMSMessageData": {"Recipients": [{"number": r, "status": status} for r in recipients]}}
 
     module.initialize = initialize
     module.SMS = SMS
@@ -383,9 +377,7 @@ def test_report_asks_which_month(api_client, seeded, text):
         assert month_start(offset).strftime("%b %Y") in body
 
 
-def test_less_payment_report_is_logged_and_farmer_gets_confirmation(
-    api_client, seeded, outbox, caplog
-):
+def test_less_payment_report_is_logged_and_farmer_gets_confirmation(api_client, seeded, outbox, caplog):
     caplog.set_level(logging.INFO)
     body = dial(api_client, "2*1*2").text
     label = month_start(1).strftime("%b %Y")
@@ -418,9 +410,7 @@ def test_report_invalid_kind(api_client, seeded, outbox):
     assert outbox == []
 
 
-def test_report_fails_honestly_when_the_confirmation_sms_cannot_be_sent(
-    api_client, seeded, monkeypatch
-):
+def test_report_fails_honestly_when_the_confirmation_sms_cannot_be_sent(api_client, seeded, monkeypatch):
     monkeypatch.setattr(SmsService, "send_custom_sms", lambda self, phone, message: False)
     assert dial(api_client, "2*1*1").text.startswith("END Sorry, we could not send your report")
 
@@ -484,9 +474,7 @@ def test_history_menu_in_kinyarwanda(api_client, seeded):
 def test_this_month_in_kinyarwanda(api_client, seeded):
     today = month_start(0)
     reply = dial_ussd_language(api_client, "1*1", RW)
-    assert reply.startswith(
-        f"END {month_label('rw', today)}\nIbiro: 100.0 kg\nUko bimeze: Wishyuwe ku wa "
-    )
+    assert reply.startswith(f"END {month_label('rw', today)}\nIbiro: 100.0 kg\nUko bimeze: Wishyuwe ku wa ")
     from datetime import date
 
     assert reply.endswith(format_date("rw", date.today(), True))
@@ -495,13 +483,9 @@ def test_this_month_in_kinyarwanda(api_client, seeded):
 def test_three_months_in_kinyarwanda(api_client, seeded):
     lines = dial_ussd_language(api_client, "1*2", RW).split("\n")
     assert lines[0] == "END Amezi 3 ashize:"
-    assert lines[1].startswith(
-        f"{month_label('rw', month_start(2), short=True)}: 100.0kg, Wishyuwe ku wa "
-    )
+    assert lines[1].startswith(f"{month_label('rw', month_start(2), short=True)}: 100.0kg, Wishyuwe ku wa ")
     assert lines[2] == f"{month_label('rw', month_start(1), short=True)}: 100.0kg, Ntabwo wishyuwe"
-    assert lines[3].startswith(
-        f"{month_label('rw', month_start(0), short=True)}: 100.0kg, Wishyuwe ku wa "
-    )
+    assert lines[3].startswith(f"{month_label('rw', month_start(0), short=True)}: 100.0kg, Wishyuwe ku wa ")
 
 
 def test_no_records_in_kinyarwanda(api_client, seeded):
@@ -511,21 +495,14 @@ def test_no_records_in_kinyarwanda(api_client, seeded):
 
 
 def test_history_shows_the_same_numbers_in_both_languages(api_client, seeded):
-    assert "100.0" in dial_ussd_language(api_client, "1*1", RW) and "100.0" in dial_ussd_language(
-        api_client, "1*1", EN
-    )
+    assert "100.0" in dial_ussd_language(api_client, "1*1", RW) and "100.0" in dial_ussd_language(api_client, "1*1", EN)
 
 
 def test_report_menu_in_kinyarwanda(api_client, seeded):
-    assert (
-        dial_ussd_language(api_client, "2", RW)
-        == "CON Tanga ikibazo cy'ubwishyu:\n1. Nishyuwe make\n2. Sinishyuwe na gato"
-    )
+    assert dial_ussd_language(api_client, "2", RW) == "CON Tanga ikibazo cy'ubwishyu:\n1. Nishyuwe make\n2. Sinishyuwe na gato"
 
 
-@pytest.mark.parametrize(
-    "kind, question", [("1", "Ni ukuhe kwezi wishyuwe make?"), ("2", "Ni ukuhe kwezi utishyuwe?")]
-)
+@pytest.mark.parametrize("kind, question", [("1", "Ni ukuhe kwezi wishyuwe make?"), ("2", "Ni ukuhe kwezi utishyuwe?")])
 def test_month_question_in_kinyarwanda_lists_kinyarwanda_months(api_client, seeded, kind, question):
     reply = dial_ussd_language(api_client, f"2*{kind}", RW)
     assert reply.startswith(f"CON {question}\n")
@@ -535,13 +512,8 @@ def test_month_question_in_kinyarwanda_lists_kinyarwanda_months(api_client, seed
 
 @pytest.mark.parametrize("kind, marker", [("1", "ubwishyu bwa make"), ("2", "kutishyurwa")])
 @pytest.mark.parametrize("choice", ["1", "2", "3"])
-def test_kinyarwanda_report_sends_a_kinyarwanda_sms(
-    api_client, seeded, outbox, kind, marker, choice
-):
-    assert (
-        dial_ussd_language(api_client, f"2*{kind}*{choice}", RW)
-        == "END Ikibazo cyawe cyoherejwe neza."
-    )
+def test_kinyarwanda_report_sends_a_kinyarwanda_sms(api_client, seeded, outbox, kind, marker, choice):
+    assert dial_ussd_language(api_client, f"2*{kind}*{choice}", RW) == "END Ikibazo cyawe cyoherejwe neza."
     assert len(outbox) == 1
     phone, text = outbox[0]
     assert phone == FARMER_PHONE
@@ -577,9 +549,7 @@ def test_errors_in_kinyarwanda(api_client, seeded, outbox, text, expected):
     assert outbox == []
 
 
-def test_failure_message_in_kinyarwanda_when_the_sms_cannot_be_sent(
-    api_client, seeded, monkeypatch
-):
+def test_failure_message_in_kinyarwanda_when_the_sms_cannot_be_sent(api_client, seeded, monkeypatch):
     monkeypatch.setattr(SmsService, "send_custom_sms", lambda self, phone, message: False)
     assert dial_ussd_language(api_client, "2*1*1", RW) == (
         "END Mutwihanganire, ntitwabashije kohereza ikibazo cyawe. Ongera ugerageze nyuma."
@@ -609,9 +579,7 @@ ALL_FLOWS = [
 
 @pytest.mark.parametrize("lang", [RW, EN])
 @pytest.mark.parametrize("text", ALL_FLOWS)
-def test_every_screen_in_both_languages_fits_one_ussd_screen(
-    api_client, seeded, outbox, lang, text
-):
+def test_every_screen_in_both_languages_fits_one_ussd_screen(api_client, seeded, outbox, lang, text):
     reply = dial_ussd_language(api_client, text, lang)
     assert reply.startswith(("CON ", "END ")) and len(reply) <= 182
     assert "{" not in reply and "}" not in reply
@@ -621,14 +589,6 @@ def test_every_screen_in_both_languages_fits_one_ussd_screen(
 def test_deep_and_odd_paths_after_choosing_a_language_never_break(api_client, seeded, outbox, text):
     reply = raw(api_client, text)
     assert reply.startswith(("CON ", "END ")) and len(reply) <= 182
-
-
-
-
-
-
-
-
 
 
 def dial_ussd_history_extra(client, text, phone=FARMER_NO_PAYMENTS_PHONE):
@@ -692,25 +652,17 @@ def at(day, offset=0):
     return datetime(first.year, first.month, day, 9, 0, tzinfo=timezone.utc)
 
 
-def test_two_paid_payments_in_one_month_are_summed_and_show_the_latest_date(
-    api_client, api_db, seeded
-):
+def test_two_paid_payments_in_one_month_are_summed_and_show_the_latest_date(api_client, api_db, seeded):
     add_payment(api_db, seeded, quantity="40", paid_on=at(3))
     add_payment(api_db, seeded, quantity="60.5", paid_on=at(20))
     label = f"{month_start(0):%b %Y}"
-    assert (
-        dial_ussd_history_extra(api_client, "1*1")
-        == f"END {label}\nWeight: 100.5 kg\nStatus: Paid on 20 {label}"
-    )
+    assert dial_ussd_history_extra(api_client, "1*1") == f"END {label}\nWeight: 100.5 kg\nStatus: Paid on 20 {label}"
 
 
 def test_one_pending_payment_makes_the_whole_month_unpaid(api_client, api_db, seeded):
     add_payment(api_db, seeded, quantity="40", paid_on=at(3))
     add_payment(api_db, seeded, quantity="60", status=PaymentStatus.pending)
-    assert (
-        dial_ussd_history_extra(api_client, "1*1")
-        == f"END {month_start(0):%b %Y}\nWeight: 100.0 kg\nStatus: Unpaid"
-    )
+    assert dial_ussd_history_extra(api_client, "1*1") == f"END {month_start(0):%b %Y}\nWeight: 100.0 kg\nStatus: Unpaid"
 
 
 def test_a_single_pending_payment_is_unpaid(api_client, api_db, seeded):
@@ -860,21 +812,13 @@ def test_every_reply_fits_in_one_ussd_screen(api_client, seeded, outbox, text):
 
 def test_the_same_request_gives_the_same_reply(api_client, seeded):
     for text in ("", "1*2"):
-        assert (
-            dial_ussd_robustness(api_client, text).text
-            == dial_ussd_robustness(api_client, text).text
-        )
+        assert dial_ussd_robustness(api_client, text).text == dial_ussd_robustness(api_client, text).text
 
 
 @pytest.mark.parametrize("kind", ["1", "2"])
 @pytest.mark.parametrize("choice", ["1", "2", "3"])
-def test_report_sms_names_the_chosen_month_and_fits_one_sms(
-    api_client, seeded, outbox, kind, choice
-):
-    assert (
-        dial_ussd_robustness(api_client, f"2*{kind}*{choice}").text
-        == "END Your report was sent successfully."
-    )
+def test_report_sms_names_the_chosen_month_and_fits_one_sms(api_client, seeded, outbox, kind, choice):
+    assert dial_ussd_robustness(api_client, f"2*{kind}*{choice}").text == "END Your report was sent successfully."
     assert len(outbox) == 1
     phone, text = outbox[0]
     assert phone == FARMER_PHONE
@@ -924,9 +868,7 @@ def test_get_is_not_allowed(api_client, seeded):
 
 
 def test_extra_form_fields_are_ignored(api_client, seeded):
-    response = api_client.post(
-        URL, data={"phoneNumber": FARMER_PHONE, "text": "", "networkCode": "63510", "foo": "bar"}
-    )
+    response = api_client.post(URL, data={"phoneNumber": FARMER_PHONE, "text": "", "networkCode": "63510", "foo": "bar"})
     assert response.status_code == 200 and response.text.startswith("CON ")
 
 
@@ -1048,14 +990,10 @@ def test_without_credentials_the_sdk_is_never_used(api_db, monkeypatch):
     assert SmsService(api_db).send_custom_sms("0788123456", "Hello") is False
 
 
-def test_full_flow_report_confirmation_goes_out_through_africas_talking(
-    api_client, seeded, monkeypatch
-):
+def test_full_flow_report_confirmation_goes_out_through_africas_talking(api_client, seeded, monkeypatch):
     """USSD report -> real SmsService -> fake Africa's Talking: one confirmation SMS to the farmer."""
     fake = use_credentials(monkeypatch)
-    response = api_client.post(
-        "/api/v1/ussd/", data={"phoneNumber": "+250788123456", "text": "2*2*2*1"}
-    )
+    response = api_client.post("/api/v1/ussd/", data={"phoneNumber": "+250788123456", "text": "2*2*2*1"})
     assert response.text == "END Your report was sent successfully."
     assert [recipients for _, recipients in fake.calls["send"]] == [["+250788123456"]]
 
@@ -1140,9 +1078,7 @@ def test_openapi_lists_the_public_routes(api_client):
 
 def test_ussd_documents_the_africas_talking_field_names(api_client):
     schema = api_client.get("/openapi.json").json()
-    body = schema["paths"]["/api/v1/ussd/"]["post"]["requestBody"]["content"][
-        "application/x-www-form-urlencoded"
-    ]
+    body = schema["paths"]["/api/v1/ussd/"]["post"]["requestBody"]["content"]["application/x-www-form-urlencoded"]
     ref = body["schema"]["$ref"].split("/")[-1]
     fields = schema["components"]["schemas"][ref]["properties"]
     assert {"phoneNumber", "text", "sessionId", "serviceCode"} <= set(fields)
@@ -1252,10 +1188,7 @@ def test_an_unknown_language_falls_back_to_english():
 
 
 def test_tr_fills_placeholders():
-    assert (
-        tr("rw", "history_none_month", month="Ukwakira 2026")
-        == "END Ukwakira 2026: Nta makuru ahari."
-    )
+    assert tr("rw", "history_none_month", month="Ukwakira 2026") == "END Ukwakira 2026: Nta makuru ahari."
     assert (
         tr(
             "en",
