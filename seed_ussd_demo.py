@@ -214,9 +214,7 @@ def seed():
             db.flush()
 
         # delivery + payment (a payment needs a produce record, which needs a weighing device)
-        has_payment = (
-            db.query(PaymentTransaction).filter(PaymentTransaction.farmer_id == farmer.user_id).first()
-        )
+        has_payment = db.query(PaymentTransaction).filter(PaymentTransaction.farmer_id == farmer.user_id).first()
         if has_payment:
             print("payment_transaction = already present")
         else:
