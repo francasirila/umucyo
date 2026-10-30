@@ -3,10 +3,10 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from conftest import make_produce_record, produce_record_payload
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from conftest import make_produce_record, produce_record_payload
 from models.enums import AccountStatus
 from repositories.produce_record import ProduceRecordRepository
 from schemas.produce_record import (

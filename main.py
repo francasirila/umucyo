@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from routers.produce_record import router as produce_record_router
 from routers import ussd
+from routers.produce_record import router as produce_record_router
 
 app = FastAPI(
     title="Umucyo",

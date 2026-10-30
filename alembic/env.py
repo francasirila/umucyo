@@ -1,16 +1,18 @@
-import sys
 import os
+import sys
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from database import Base, SQLALCHEMY_DATABASE_URL
-import models  # noqa: F401
-from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.compiler import compiles
+
+import models  # noqa: F401
+from database import SQLALCHEMY_DATABASE_URL, Base
 
 
 @compiles(UUID, "sqlite")
