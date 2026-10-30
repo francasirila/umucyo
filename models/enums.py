@@ -20,7 +20,6 @@ class UserType(str, Enum):
 class DeliveryStatus(str, Enum):
     accepted = "accepted"
     rejected = "rejected"
-    partially_accepted = "partially_accepted"
 
 
 class PaymentStatus(str, Enum):
