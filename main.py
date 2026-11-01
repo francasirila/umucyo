@@ -14,6 +14,10 @@ from routers.weighing_device import router as weighing_device_router
 from routers.produce_record import router as produce_record_router
 from routers.task import router as task_router
 from routers import ussd
+from database import Base, engine
+
+Base.metadata.create_all(bind=engine)
+
 
 load_dotenv()
 
