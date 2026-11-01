@@ -40,7 +40,7 @@ def bootstrap_admin(
 
 
 @router.post("/login", response_model=LoginResponse)
-@limiter.limit("5/15minutes")
+@limiter.limit("5/5minutes")
 def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     return AuthService(db).login(str(payload.email), payload.password)
 
