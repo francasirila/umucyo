@@ -20,7 +20,5 @@ class CollectionPoint(Base):
     weighing_devices = relationship("WeighingDevice", back_populates="collection_point")
     farmers = relationship("Farmer", back_populates="collection_point")
     produce_records = relationship("ProduceRecord", back_populates="collection_point")
-    cooperative_users = relationship(
-        "CooperativeUser", back_populates="collection_point", foreign_keys="CooperativeUser.collection_point_id"
-    )
+    cooperative_users = relationship("CooperativeUser", back_populates="collection_point", foreign_keys="CooperativeUser.collection_point_id")
     tasks = relationship("Task", back_populates="collection_point")

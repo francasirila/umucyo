@@ -9,11 +9,11 @@ from routers.users import router as users_router
 from routers.auth import router as auth_router
 from routers.collection_point import router as collection_point_router
 from fastapi import FastAPI
-from routers import ussd
 from routers.produce_price import router as produce_price_router
 from routers.weighing_device import router as weighing_device_router
 from routers.produce_record import router as produce_record_router
-
+from routers.task import router as task_router
+from routers import ussd
 
 load_dotenv()
 
@@ -42,11 +42,12 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(produce_price_router)
+app.include_router(task_router)
 app.include_router(collection_point_router)
 app.include_router(weighing_device_router)
 app.include_router(produce_record_router)
 app.include_router(ussd.router)
-app.include_router(produce_price_router)
 
 
 

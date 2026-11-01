@@ -89,6 +89,7 @@ class AuthService:
         except Exception as exc:
             raise ServiceError(503, OTP_SEND_FAILED) from exc
 
+
     def register_cooperative(self, payload):
         email = self._email(payload.email)
         name = payload.cooperative_name.strip()
@@ -162,7 +163,7 @@ class AuthService:
 
         return {
             "requires_otp": True,
-            "message": "Login requires OTP verification.",
+            "message": "A new verification code has been sent to your account",
             "email": user.email,
         }
 
@@ -182,6 +183,8 @@ class AuthService:
             "message": "A new verification code has been sent to your email.",
             "email": user.email,
         }
+
+
 
     def verify_login_otp(self, email, code):
         user = self._find_user(email)

@@ -29,7 +29,6 @@ class CooperativeUser(User):
     assigned_tasks = relationship("Task", foreign_keys="Task.assigned_to_user_id", back_populates="assigned_to")
     audit_log = relationship("AuditLog", back_populates="user")
     produce_records = relationship("ProduceRecord", foreign_keys="ProduceRecord.user_id", back_populates="agent")
-    produce_record = relationship("ProduceRecord", foreign_keys="ProduceRecord.user_id", back_populates="user")
 
     __mapper_args__ = {
         "polymorphic_abstract": True,
