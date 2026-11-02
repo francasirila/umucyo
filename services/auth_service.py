@@ -150,8 +150,7 @@ class AuthService:
     def login(self, email, password):
         user = self._find_user(email)
 
-        if user is None or not verify_password(password, user.password_hash):
-            raise ServiceError(401, "Invalid email or password.")
+        if user is None or not user.password_hash or not verify_password(password, user.password_hash):            raise ServiceError(401, "Invalid email or password.")
 
         if user.status != AccountStatus.active:
             raise ServiceError(403, "This account is inactive.")

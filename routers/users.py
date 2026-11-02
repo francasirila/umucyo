@@ -83,6 +83,17 @@ def update_agent(
     return UserService(db).update_agent(current_user, agent_id, payload)
 
 
+
+@router.post("/agents/{agent_id}/resend-invitation", tags=["Agents"])
+def resend_invitation(
+    agent_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return UserService(db).resend_invitation(current_user, agent_id)
+
+
+
 @router.post(
     "/farmers",
     response_model=FarmerRegistrationResponse,
@@ -113,3 +124,12 @@ def get_farmer(
     db: Session = Depends(get_db),
 ):
     return UserService(db).get_farmer(current_user, farmer_id)
+
+
+@router.delete("/agents/{agent_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Agents"])
+def remove_agent(
+    agent_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    UserService(db).deactivate_agent(current_user, agent_id)

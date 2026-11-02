@@ -33,7 +33,7 @@ class AgentCreate(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     email: EmailStr
-    collection_point_id: UUID
+    collection_name: str = Field(min_length=1, max_length=100)
 
 
 class FarmerCreate(BaseModel):
@@ -110,3 +110,9 @@ class CooperativeProfileResponse(BaseModel):
     email: EmailStr
 
     model_config = ConfigDict(from_attributes=True)
+
+
+
+class SetPasswordRequest(BaseModel):
+    token: str
+    password: str

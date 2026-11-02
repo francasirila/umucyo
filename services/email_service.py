@@ -2,6 +2,7 @@ import smtplib
 from email.message import EmailMessage
 
 from core.config import settings
+from services.email_templates import render_invitation_email, render_otp_email
 
 
 def _send_email(message: EmailMessage) -> None:
@@ -18,17 +19,20 @@ def _send_email(message: EmailMessage) -> None:
         server.send_message(message)
 
 
-def send_login_otp(email: str, otp: str) -> None:
+def _build_message(to: str, subject: str, text: str, html: str) -> EmailMessage:
     message = EmailMessage()
-    message["Subject"] = "Your Umucyo login verification code"
-    message["To"] = email
-    message.set_content(
-        f"Your Umucyo login verification code is {otp}.\n\n"
-        f"This code expires in {settings.OTP_EXPIRE_MINUTES} minutes.\n\n"
-        "If you did not attempt to log in, ignore this email."
-    )
+    message["Subject"] = subject
+    message["To"] = to
+    message.set_content(text)
+    message.add_alternative(html, subtype="html")
+    return message
 
-    _send_email(message)
+
+def send_login_otp(email: str, otp: str, name: str = "") -> None:
+    subject, text, html = render_otp_email(
+        otp, name, minutes=settings.OTP_EXPIRE_MINUTES
+    )
+    _send_email(_build_message(email, subject, text, html))
 
 
 def send_invitation_email(
@@ -36,16 +40,13 @@ def send_invitation_email(
     first_name: str,
     link: str,
     purpose: str = "invitation",
+    collection_point: str = "",
 ) -> bool:
-    message = EmailMessage()
-    message["Subject"] = "Your Umucyo account invitation"
-    message["To"] = email
-    message.set_content(
-        f"Hello {first_name},\n\n"
-        f"You have received an Umucyo {purpose} invitation.\n\n"
-        f"Use the following link to continue setting up your account:\n{link}\n\n"
-        "If you were not expecting this invitation, you can ignore this email."
+    subject, text, html = render_invitation_email(
+        link,
+        first_name,
+        collection_point=collection_point,
+        expires_hours=settings.invitation_expire_hours,
     )
-
-    _send_email(message)
+    _send_email(_build_message(email, subject, text, html))
     return True

@@ -1,6 +1,7 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Header, Request
 from sqlalchemy.orm import Session
-
 from core.rate_limit import limiter
 from core.security import get_current_user
 from database import get_db
