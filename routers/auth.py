@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Header, Request, Response
 from sqlalchemy.orm import Session
 from core.rate_limit import limiter
 from core.security import get_current_user
@@ -12,6 +12,7 @@ from schemas.auth import (
     LoginRequest,
     LoginResponse,
     MessageResponse,
+    ProfileUpdate,
     ResendOTPRequest,
     SetPasswordRequest,
     TokenResponse,
@@ -72,3 +73,12 @@ def read_current_user(current_user: User = Depends(get_current_user)):
 @router.post("/logout", response_model=MessageResponse)
 def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return AuthService(db).logout(current_user)
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_current_user(
+    payload: ProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return AuthService(db).update_profile(current_user, payload)

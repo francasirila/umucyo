@@ -32,6 +32,20 @@ def list_tasks(
     return TaskService(db).list_tasks(skip=skip, limit=limit)
 
 
+@router.get("/agent/{agent_id}", response_model=list[TaskResponse])
+def list_agent_tasks(
+    agent_id: UUID,
+    skip: int = Query(default=0),
+    limit: int = Query(default=100),
+    db: Session = Depends(get_db),
+):
+    return TaskService(db).list_tasks_by_agent(
+        agent_id=agent_id,
+        skip=skip,
+        limit=limit,
+    )
+    
+
 @router.get(
     "/{task_id}",
     response_model=TaskResponse,

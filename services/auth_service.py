@@ -287,3 +287,38 @@ class AuthService:
             logger.exception("Password reset email failed")
 
         return {"message": RESET_MESSAGE}
+
+
+    def update_profile(self, user, payload):
+        changes = payload.model_dump(exclude_unset=True, exclude_none=True)
+        if not changes:
+            raise ServiceError(422, "Provide at least one field to update.")
+
+        if "email" in changes:
+            email = self._email(changes["email"])
+            taken = self.db.scalar(
+                select(CooperativeUser.user_id).where(
+                    CooperativeUser.email == email,
+                    CooperativeUser.user_id != user.user_id,
+                )
+            )
+            if taken:
+                raise ServiceError(409, "An account with this email already exists.")
+            changes["email"] = email
+
+        for key in ("first_name", "last_name"):
+            if key in changes:
+                changes[key] = changes[key].strip()
+
+        old_values = {k: str(getattr(user, k)) for k in changes}
+        for key, value in changes.items():
+            setattr(user, key, value)
+
+        self.audit.record(
+            user, "update_profile", "user", user.user_id,
+            old_values=old_values,
+            new_values={k: str(v) for k, v in changes.items()},
+        )
+        commit_session(self.db)
+        self.db.refresh(user)
+        return user

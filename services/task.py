@@ -171,3 +171,24 @@ class TaskService:
         except Exception:
             self.db.rollback()
             raise
+
+
+    def list_tasks_by_agent(
+        self,
+        agent_id: UUID,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[Task]:
+        if skip < 0:
+            raise ServiceError(422, "Skip cannot be negative.")
+        if not 1 <= limit <= 100:
+            raise ServiceError(422, "Limit must be between 1 and 100.")
+        agent = repo.get_cooperative_user(self.db, agent_id)
+        if agent is None:
+            raise ServiceError(404, "Agent not found.")
+        return repo.list_by_agent(
+            self.db,
+            agent_id=agent_id,
+            skip=skip,
+            limit=limit,
+        )

@@ -12,6 +12,13 @@ class CooperativeRegistration(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+
+class ProfileUpdate(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1, max_length=100)
+    last_name: str | None = Field(default=None, max_length=100)
+    email: EmailStr | None = None
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=1, max_length=128)
