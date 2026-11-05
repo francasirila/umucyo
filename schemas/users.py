@@ -33,8 +33,7 @@ class AgentCreate(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     email: EmailStr
-    collection_name: str = Field(min_length=1, max_length=100)
-
+    collection_point_id: UUID
 
 class FarmerCreate(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)

@@ -17,6 +17,8 @@ class CooperativeUser(User):
     cooperative_id = Column(UUID(as_uuid=True), ForeignKey("cooperative.cooperative_id"), nullable=False)
     collection_point_id = Column(UUID(as_uuid=True), ForeignKey("collection_point.collection_point_id"), nullable=True)
     registered_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=True)
+    password_setup_token_hash = Column(String(64), nullable=True)
+    password_setup_expires_at = Column(DateTime(timezone=True), nullable=True)
 
     cooperative = relationship("Cooperative", back_populates="cooperative_users")
     collection_point = relationship("CollectionPoint", back_populates="cooperative_users", foreign_keys=[collection_point_id])

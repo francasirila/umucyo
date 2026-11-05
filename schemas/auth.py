@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-
 from models.enums import AccountStatus, UserRole
 
 
@@ -67,3 +66,7 @@ class LoginResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr

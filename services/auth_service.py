@@ -1,27 +1,67 @@
 import hashlib
 import secrets
+import logging
+from datetime import datetime, timezone
+import threading
 from datetime import timedelta
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-
+from sqlalchemy import func
 from core.config import settings
 from core.exceptions import ServiceError
 from core.security import create_access_token, get_password_hash, verify_password
 from core.utils import ensure_aware, enum_value, utcnow
-from models.agent_invitation import AgentInvitation
 from models.cooperative import Cooperative
 from models.cooperative_user import CooperativeAdmin, CooperativeAgent, CooperativeUser
 from models.enums import AccountStatus, UserRole
-from models.login_otp import LoginOTP
 from models.user import User
 from services.audit_service import AuditService
 from services.email_service import send_login_otp
+from services.email_service import send_invitation_email
+from core.security import hash_password
 
 MAX_OTP_ATTEMPTS = 5
 USER_MODELS = {UserRole.admin: CooperativeAdmin, UserRole.agent: CooperativeAgent}
-INVALID_INVITATION = "This invitation link is invalid or has expired."
 OTP_SEND_FAILED = "Unable to send the login verification code. Please try again."
+INVALID_INVITATION = "This invitation link is invalid or has expired."
+RESET_MESSAGE = "If an account exists for this email, a reset link has been sent."
+
+_otp_store = {}
+_otp_lock = threading.Lock()
+
+logger = logging.getLogger(__name__)
+
+
+def _otp_set(key, otp_hash, ttl_minutes):
+    with _otp_lock:
+        _otp_store[key] = {
+            "hash": otp_hash,
+            "expires_at": utcnow() + timedelta(minutes=ttl_minutes),
+            "attempts": 0,
+        }
+
+
+def _otp_get(key):
+    with _otp_lock:
+        entry = _otp_store.get(key)
+        if entry is None:
+            return None
+        if ensure_aware(entry["expires_at"]) <= utcnow():
+            del _otp_store[key]
+            return None
+        return entry
+
+
+def _otp_add_attempt(key):
+    with _otp_lock:
+        if key in _otp_store:
+            _otp_store[key]["attempts"] += 1
+
+
+def _otp_delete(key):
+    with _otp_lock:
+        _otp_store.pop(key, None)
 
 
 def commit_session(db):
@@ -68,28 +108,18 @@ class AuthService:
 
     def _issue_otp(self, user):
         code = f"{secrets.randbelow(900000) + 100000:06d}"
+        key = str(user.user_id)
 
-        self.db.query(LoginOTP).filter(
-            LoginOTP.user_id == user.user_id,
-            LoginOTP.consumed_at.is_(None),
-        ).delete(synchronize_session=False)
-
-        self.db.add(
-            LoginOTP(
-                user_id=user.user_id,
-                otp_hash=self._hash(code),
-                expires_at=utcnow() + timedelta(minutes=settings.OTP_EXPIRE_MINUTES),
-                attempts=0,
-            )
-        )
-        commit_session(self.db)
+        _otp_set(key, self._hash(code), settings.OTP_EXPIRE_MINUTES)
 
         try:
             send_login_otp(str(user.email), code)
         except Exception as exc:
+            logger.exception("Failed to send login OTP to %s", user.email)
+            _otp_delete(key)
             raise ServiceError(503, OTP_SEND_FAILED) from exc
 
-
+            
     def register_cooperative(self, payload):
         email = self._email(payload.email)
         name = payload.cooperative_name.strip()
@@ -128,6 +158,7 @@ class AuthService:
             self.db.refresh(user)
 
             return {
+                "cooperative_id": cooperative.cooperative_id,
                 "message": "Cooperative and administrator account created successfully.",
                 "admin": user,
             }
@@ -150,7 +181,8 @@ class AuthService:
     def login(self, email, password):
         user = self._find_user(email)
 
-        if user is None or not user.password_hash or not verify_password(password, user.password_hash):            raise ServiceError(401, "Invalid email or password.")
+        if user is None or not verify_password(password, user.password_hash):
+            raise ServiceError(401, "Invalid email or password.")
 
         if user.status != AccountStatus.active:
             raise ServiceError(403, "This account is inactive.")
@@ -162,7 +194,7 @@ class AuthService:
 
         return {
             "requires_otp": True,
-            "message": "A new verification code has been sent to your account",
+            "message": "Login requires OTP verification.",
             "email": user.email,
         }
 
@@ -183,68 +215,75 @@ class AuthService:
             "email": user.email,
         }
 
-
-
     def verify_login_otp(self, email, code):
         user = self._find_user(email)
         if user is None:
             raise ServiceError(401, "Invalid email or OTP.")
 
-        otp = self.db.scalar(
-            select(LoginOTP)
-            .where(LoginOTP.user_id == user.user_id, LoginOTP.consumed_at.is_(None))
-            .order_by(LoginOTP.created_at.desc())
-        )
-        if otp is None:
-            raise ServiceError(401, "Invalid email or OTP.")
+        key = str(user.user_id)
+        entry = _otp_get(key)
+        if entry is None:
+            raise ServiceError(401, "Invalid or expired OTP.")
 
-        if otp.attempts >= MAX_OTP_ATTEMPTS:
+        if entry["attempts"] >= MAX_OTP_ATTEMPTS:
+            _otp_delete(key)
             raise ServiceError(429, "Too many incorrect codes. Request a new code.")
 
-        if ensure_aware(otp.expires_at) <= utcnow():
-            raise ServiceError(401, "OTP has expired.")
-
-        if not secrets.compare_digest(self._hash(code), otp.otp_hash):
-            otp.attempts += 1
-            commit_session(self.db)
+        if not secrets.compare_digest(self._hash(code), entry["hash"]):
+            _otp_add_attempt(key)
             raise ServiceError(401, "Invalid email or OTP.")
 
         if user.status != AccountStatus.active:
             raise ServiceError(403, "This account is inactive.")
 
-        otp.consumed_at = utcnow()
+        _otp_delete(key)  # single use
+
         token = create_access_token(str(user.user_id), enum_value(user.role))
         self.audit.record(user, "verify_login_otp", "user", user.user_id)
         commit_session(self.db)
 
         return {"access_token": token, "token_type": "bearer", "user": user}
 
-    def set_password(self, token, password):
-        invitation = self.db.scalar(select(AgentInvitation).where(AgentInvitation.token_hash == self._hash(token)))
-        now = utcnow()
+    def set_password(self, token: str, password: str) -> dict:
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        user = self.db.scalar(select(CooperativeUser).where(CooperativeUser.password_setup_token_hash == token_hash))
 
-        if invitation is None or invitation.accepted_at is not None or ensure_aware(invitation.expires_at) <= now:
-            raise ServiceError(400, INVALID_INVITATION)
+        expires = user.password_setup_expires_at if user else None
+        if expires is not None and expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
 
-        user = self.db.get(CooperativeUser, invitation.user_id)
-        if user is None:
-            raise ServiceError(400, INVALID_INVITATION)
+        if user is None or expires is None or expires < datetime.now(timezone.utc):
+            raise ServiceError(400, "This invitation link is invalid or has expired.")
 
-        try:
-            user.password_hash = get_password_hash(password)
-        except ValueError as exc:
-            raise ServiceError(422, str(exc)) from exc
-
-        invitation.accepted_at = now
+        user.password_hash = hash_password(password)  # use your existing hashing helper
         user.status = AccountStatus.active
-        user.email_verified_at = now
-
-        self.audit.record(user, "set_password", "user", user.user_id)
-        commit_session(self.db)
-
-        return {"message": "Password set successfully. You can now sign in."}
+        user.password_setup_token_hash = None
+        user.password_setup_expires_at = None
+        self.db.commit()
+        return {"message": "Password set successfully."}
 
     def logout(self, user):
         self.audit.record(user, "logout", "user", user.user_id)
         commit_session(self.db)
         return {"message": "Logged out successfully."}
+
+    def forgot_password(self, email: str) -> dict:
+        user = self.db.scalar(select(CooperativeUser).where(func.lower(CooperativeUser.email) == email.strip().lower()))
+
+        if user is None or user.status != AccountStatus.active:
+            return {"message": RESET_MESSAGE}
+
+        raw_token = secrets.token_urlsafe(32)
+        user.password_setup_token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        user.password_setup_expires_at = datetime.now(timezone.utc) + timedelta(
+            minutes=getattr(settings, "password_reset_expire_minutes", 60)
+        )
+        self.db.commit()
+
+        link = f"{settings.frontend_url.rstrip('/')}/set-password?token={raw_token}"
+        try:
+            send_invitation_email(user.email, user.first_name, link, "reset")
+        except Exception:
+            logger.exception("Password reset email failed")
+
+        return {"message": RESET_MESSAGE}

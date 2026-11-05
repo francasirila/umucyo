@@ -53,3 +53,9 @@ class UserRole(str, Enum):
 class IssueCategory(str, Enum):
     financial = "financial"
     non_financial = "non_financial"
+
+
+class UserType:
+    farmer = UserRole.farmer
+    cooperative_agent = UserRole.agent
+    admin = UserRole.admin

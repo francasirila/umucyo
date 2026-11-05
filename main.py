@@ -26,20 +26,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
-cors_origins = [
-    origin.strip()
-    for origin in os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000"
-    ).split(",")
-    if origin.strip()
-]
-
-
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "http://192.168.1.15:3000",
+        "http://192.168.100.252:3000",
+        "http://192.168.100.252:3001",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,9 +53,6 @@ app.include_router(produce_price_router)
 
 
 
-@app.exception_handler(ServiceError)
-async def service_error_handler(request: Request, exc: ServiceError):
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 @app.get("/")

@@ -11,7 +11,7 @@ class Settings:
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
 
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
-
+    PASSWORD_SETUP_EXPIRE_HOURS: int = int(os.getenv("PASSWORD_SETUP_EXPIRE_HOURS", "24"))
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", SECRET_KEY)
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
@@ -26,7 +26,7 @@ class Settings:
         origin.strip()
         for origin in os.getenv(
             "CORS_ORIGINS",
-            "http://localhost:3000,http://127.0.0.1:3000",
+            "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001",
         ).split(",")
         if origin.strip()
     ]
@@ -38,7 +38,6 @@ class Settings:
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
 
     OTP_EXPIRE_MINUTES: int = int(os.getenv("OTP_EXPIRE_MINUTES", "10"))
-    INVITATION_EXPIRE_HOURS: int = int(os.getenv("INVITATION_EXPIRE_HOURS", "24"))
 
     SMS_LEOPARD_API_KEY: str = os.getenv("SMS_LEOPARD_API_KEY", "")
     SMS_LEOPARD_API_SECRET: str = os.getenv(
@@ -65,8 +64,8 @@ class Settings:
         return self.BOOTSTRAP_SECRET
 
     @property
-    def invitation_expire_hours(self) -> int:
-        return self.INVITATION_EXPIRE_HOURS
+    def password_setup_expire_hours(self) -> int:
+        return self.PASSWORD_SETUP_EXPIRE_HOURS
 
     @property
     def frontend_url(self) -> str:

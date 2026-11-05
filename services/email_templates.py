@@ -1,5 +1,6 @@
 from html import escape
 
+
 APP_NAME = "Umucyo"
 BRAND = "#2f6f4e"
 
@@ -47,29 +48,6 @@ def render_otp_email(code: str, name: str = "", minutes: int = 10):
     )
     return subject, text, html
 
-
-def render_invitation_email(link: str, name: str = ""):
-    greeting = f"Hi {escape(name)}," if name else "Hi,"
-    subject = f"You're invited to join {APP_NAME}"
-    text = (
-        f"{greeting}\n\nYou've been invited to join {APP_NAME} as an agent.\n"
-        f"Set your password here: {link}\n\nThis link can be used once and expires soon."
-    )
-    html = _layout(
-        "Set your password to activate your agent account.",
-        f"""
-        <p style="margin:0 0 12px;">{greeting}</p>
-        <p style="margin:0 0 20px;">You've been invited to join {APP_NAME} as an agent. Set your password to activate your account.</p>
-        <div style="text-align:center;margin:0 0 20px;">
-          <a href="{escape(link)}" style="display:inline-block;background:{BRAND};color:#ffffff;text-decoration:none;
-             padding:13px 28px;border-radius:8px;font-weight:bold;">Set my password</a>
-        </div>
-        <p style="margin:0 0 6px;font-size:13px;color:#55645b;">Or paste this link into your browser:</p>
-        <p style="margin:0;font-size:12px;word-break:break-all;color:#55645b;">{escape(link)}</p>
-        """,
-    )
-    return subject, text, html
-  
 
 def render_invitation_email(
     link: str,

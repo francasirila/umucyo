@@ -3,13 +3,14 @@ import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
-from sqlalchemy import func, select, delete
+
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
 from core.config import settings
 from core.exceptions import ServiceError
 from core.utils import enum_value
-from models.agent_invitation import AgentInvitation
 from models.collection_point import CollectionPoint
 from models.cooperative_user import CooperativeAgent, CooperativeUser
 from models.enums import AccountStatus, UserRole
@@ -19,7 +20,6 @@ from services.access import get_active_point, require_admin, require_staff, role
 from services.audit_service import AuditService
 from services.email_service import send_invitation_email
 from services.sms_service import normalize_phone, send_sms
-
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +42,12 @@ class UserService:
             raise
 
     @staticmethod
-    def _new_invitation(user_id: UUID) -> tuple[str, AgentInvitation]:
+    def _new_invitation(user: CooperativeUser) -> str:
         raw_token = secrets.token_urlsafe(32)
-        invitation = AgentInvitation(
-            user_id=user_id,
-            token_hash=hashlib.sha256(raw_token.encode()).hexdigest(),
-            expires_at=datetime.now(timezone.utc) + timedelta(hours=settings.invitation_expire_hours),
-        )
-        return raw_token, invitation
+        user.password_setup_token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        user.password_setup_expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.password_setup_expire_hours)
+        return raw_token
 
-            
     @staticmethod
     def _invitation_link(raw_token: str) -> str:
         return f"{settings.frontend_url.rstrip('/')}/set-password?token={raw_token}"
@@ -69,20 +65,8 @@ class UserService:
         if self.db.scalar(select(CooperativeUser.user_id).where(func.lower(CooperativeUser.email) == email)):
             raise ServiceError(409, EMAIL_EXISTS)
 
-        point_id = self.db.scalar(
-            select(CollectionPoint.collection_point_id)
-            .where(
-                CollectionPoint.cooperative_id == cooperative_id,
-                func.lower(CollectionPoint.collection_name)
-                == payload.collection_name.strip().lower(),
-            )
-            .limit(1)
-        )
-        if point_id is None:
-            raise ServiceError(404, "Collection point not found in your cooperative.")
+        point = get_active_point(self.db, current_user, payload.collection_point_id)
 
-        point = get_active_point(self.db, current_user, point_id)
-        
         agent = CooperativeAgent(
             first_name=payload.first_name.strip(),
             last_name=payload.last_name.strip(),
@@ -99,18 +83,15 @@ class UserService:
             self.db.add(agent)
             self.db.flush()
 
-            raw_token, invitation = self._new_invitation(agent.user_id)
-            self.db.add(invitation)
+            raw_token = self._new_invitation(agent)
 
             self.audit.record(
                 current_user,
                 "register_agent",
                 "user",
                 agent.user_id,
-                new_values={
-                    "email": email,
-                    "collection_point_id": str(point.collection_point_id),
-                },
+                new_values={"email": email,"collection_point_id": str(point.collection_point_id),
+},
             )
             self.db.commit()
             self.db.refresh(agent)
@@ -122,13 +103,7 @@ class UserService:
             raise
 
         try:
-            send_invitation_email(
-                email,
-                agent.first_name,
-                self._invitation_link(raw_token),
-                "invitation",
-                collection_point=point.collection_name,
-            )
+            send_invitation_email(email, agent.first_name, self._invitation_link(raw_token), "invitation")
             invitation_sent = True
         except Exception:
             logger.exception("Agent invitation email failed")
@@ -181,8 +156,6 @@ class UserService:
         self.db.refresh(agent)
         return agent
 
-
-
     def resend_invitation(self, current_user, agent_id: UUID) -> dict:
         cooperative_id = require_admin(current_user)
         agent = self._get_agent_or_404(cooperative_id, agent_id)
@@ -190,23 +163,11 @@ class UserService:
         if agent.status != AccountStatus.pending:
             raise ServiceError(409, "This agent has already set a password.")
 
-        self.db.execute(
-            delete(AgentInvitation).where(AgentInvitation.user_id == agent.user_id)
-        )
-        raw_token, invitation = self._new_invitation(agent.user_id)
-        self.db.add(invitation)
+        raw_token = self._new_invitation(agent)
         self._commit()
 
-        point = self.db.get(CollectionPoint, agent.collection_point_id)
-
         try:
-            send_invitation_email(
-                agent.email,
-                agent.first_name,
-                self._invitation_link(raw_token),
-                "invitation",
-                collection_point=point.collection_name if point else "",
-            )
+            send_invitation_email(agent.email, agent.first_name, self._invitation_link(raw_token), "invitation")
             sent = True
         except Exception:
             logger.exception("Agent invitation resend failed")
@@ -217,7 +178,7 @@ class UserService:
             "invitation_sent": sent,
         }
 
-        
+
     def deactivate_agent(self, current_user, agent_id: UUID) -> None:
         cooperative_id = require_admin(current_user)
         agent = self._get_agent_or_404(cooperative_id, agent_id)
@@ -233,7 +194,6 @@ class UserService:
             new_values={"status": "inactive"},
         )
         self._commit()
-
 
 
     def register_farmer(self, current_user, payload: FarmerCreate) -> dict:
@@ -252,7 +212,7 @@ class UserService:
             phone_number=phone,
             collection_point_id=point.collection_point_id,
             registered_by_user_id=current_user.user_id,
-            farmer_id=__import__('uuid').uuid4(),
+            farmer_id=__import__("uuid").uuid4(),
         )
 
         try:
